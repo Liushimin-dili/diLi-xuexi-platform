@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>初中地理学习平台</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
@@ -55,6 +56,18 @@
             
             <!-- 欢迎面板 -->
             <div id="welcomePanel" class="bg-white rounded-xl shadow-sm p-8 text-center fade-in">
+                <div id="loginSection" class="mb-4">
+                    <button onclick="showLoginModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg mr-2">
+                        <i class="fa-solid fa-user"></i> 登录
+                    </button>
+                    <button onclick="showRegisterModal()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                        <i class="fa-solid fa-user-plus"></i> 注册
+                    </button>
+                </div>
+                <div id="userInfo" class="hidden mb-4">
+                    <span id="userEmail" class="text-gray-600"></span>
+                    <button onclick="logout()" class="ml-2 text-red-500 hover:text-red-700">退出</button>
+                </div>
                 <i class="fa-solid fa-earth-americas text-6xl text-blue-500 mb-4"></i>
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">欢迎来到初中地理学习平台</h2>
                 <p class="text-gray-600 mb-6">选择左侧章节开始学习，或点击下方按钮进行测验</p>
@@ -561,4 +574,86 @@
         }
     </script>
 </body>
+    
+    <!-- 登录注册模态框 -->
+    <div id="authModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-96 max-w-[90%]">
+            <h2 id="modalTitle" class="text-xl font-bold mb-4">登录</h2>
+            <input id="authEmail" type="email" placeholder="邮箱" class="w-full px-4 py-2 border rounded-lg mb-3">
+            <input id="authPassword" type="password" placeholder="密码" class="w-full px-4 py-2 border rounded-lg mb-4">
+            <button id="authBtn" onclick="submitAuth()" class="w-full bg-blue-600 text-white py-2 rounded-lg">登录</button>
+            <p class="text-center mt-3 text-sm text-gray-500">
+                <span id="authSwitch" onclick="toggleAuthMode()">没有账号？点此注册</span>
+            </p>
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-500">✕</button>
+        </div>
+    </div>
+
+    <script>
+        // Supabase配置
+        const SUPABASE_URL = 'https://adcdrzzyhveuhxchqbcs.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_KFqWdKhpA-IJCRG3h6crvA_tEQtC4wI';
+        
+        let authMode = 'login';
+        
+        function showLoginModal() { authMode = 'login'; document.getElementById('modalTitle').innerText = '登录'; document.getElementById('authBtn').innerText = '登录'; document.getElementById('authSwitch').innerText = '没有账号？点此注册'; document.getElementById('authModal').classList.remove('hidden'); document.getElementById('authModal').classList.add('flex'); }
+        function showRegisterModal() { authMode = 'register'; document.getElementById('modalTitle').innerText = '注册'; document.getElementById('authBtn').innerText = '注册'; document.getElementById('authSwitch').innerText = '已有账号？点此登录'; document.getElementById('authModal').classList.remove('hidden'); document.getElementById('authModal').classList.add('flex'); }
+        function closeAuthModal() { document.getElementById('authModal').classList.add('hidden'); document.getElementById('authModal').classList.remove('flex'); }
+        function toggleAuthMode() { if(authMode === 'login') showRegisterModal(); else showLoginModal(); }
+        
+        async function submitAuth() {
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            if(!email || !password) { alert('请填写邮箱和密码'); return; }
+            
+            const btn = document.getElementById('authBtn');
+            btn.disabled = true; btn.innerText = '请稍候...';
+            
+            try {
+                if(authMode === 'register') {
+                    // 注册
+                    const resp = await fetch(SUPABASE_URL + '/rest/v1/users', {
+                        method: 'POST',
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                        body: JSON.stringify({ email, password })
+                    });
+                    if(resp.ok) { alert('注册成功！请登录'); showLoginModal(); }
+                    else { const err = await resp.json(); alert('注册失败: ' + JSON.stringify(err)); }
+                } else {
+                    // 登录
+                    const resp = await fetch(SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email), {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+                    });
+                    const users = await resp.json();
+                    if(users.length > 0 && users[0].password === password) {
+                        localStorage.setItem('geo_user', JSON.stringify(users[0]));
+                        closeAuthModal();
+                        showUserInfo(users[0]);
+                        alert('登录成功！');
+                    } else {
+                        alert('邮箱或密码错误');
+                    }
+                }
+            } catch(e) { alert('操作失败: ' + e.message); }
+            btn.disabled = false; btn.innerText = authMode === 'login' ? '登录' : '注册';
+        }
+        
+        function showUserInfo(user) {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('userInfo').classList.remove('hidden');
+            document.getElementById('userEmail').innerText = user.email;
+        }
+        
+        function logout() {
+            localStorage.removeItem('geo_user');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('userInfo').classList.add('hidden');
+        }
+        
+        // 检查登录状态
+        window.onload = function() {
+            const user = localStorage.getItem('geo_user');
+            if(user) showUserInfo(JSON.parse(user));
+        }
+    </script>
 </html>
