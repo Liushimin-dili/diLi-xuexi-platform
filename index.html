@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -64,9 +64,9 @@
                         <i class="fa-solid fa-user-plus"></i> 注册
                     </button>
                 </div>
-                <div id="userInfo" class="hidden mb-4">
+                <div id="userInfo" class="hidden mb-4 p-2 bg-green-50 rounded-lg">
                     <span id="userEmail" class="text-gray-600"></span>
-                    <button onclick="logout()" class="ml-2 text-red-500 hover:text-red-700">退出</button>
+                    <button onclick="logout()" class="ml-2 text-red-500 hover:text-red-700 text-sm">退出</button>
                 </div>
                 <i class="fa-solid fa-earth-americas text-6xl text-blue-500 mb-4"></i>
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">欢迎来到初中地理学习平台</h2>
@@ -583,9 +583,9 @@
             <input id="authPassword" type="password" placeholder="密码" class="w-full px-4 py-2 border rounded-lg mb-4">
             <button id="authBtn" onclick="submitAuth()" class="w-full bg-blue-600 text-white py-2 rounded-lg">登录</button>
             <p class="text-center mt-3 text-sm text-gray-500">
-                <span id="authSwitch" onclick="toggleAuthMode()">没有账号？点此注册</span>
+                <span id="authSwitch" onclick="toggleAuthMode()" class="cursor-pointer text-blue-500">没有账号？点此注册</span>
             </p>
-            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-500">✕</button>
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-500 text-xl">×</button>
         </div>
     </div>
 
@@ -596,10 +596,32 @@
         
         let authMode = 'login';
         
-        function showLoginModal() { authMode = 'login'; document.getElementById('modalTitle').innerText = '登录'; document.getElementById('authBtn').innerText = '登录'; document.getElementById('authSwitch').innerText = '没有账号？点此注册'; document.getElementById('authModal').classList.remove('hidden'); document.getElementById('authModal').classList.add('flex'); }
-        function showRegisterModal() { authMode = 'register'; document.getElementById('modalTitle').innerText = '注册'; document.getElementById('authBtn').innerText = '注册'; document.getElementById('authSwitch').innerText = '已有账号？点此登录'; document.getElementById('authModal').classList.remove('hidden'); document.getElementById('authModal').classList.add('flex'); }
-        function closeAuthModal() { document.getElementById('authModal').classList.add('hidden'); document.getElementById('authModal').classList.remove('flex'); }
-        function toggleAuthMode() { if(authMode === 'login') showRegisterModal(); else showLoginModal(); }
+        function showLoginModal() { 
+            authMode = 'login'; 
+            document.getElementById('modalTitle').innerText = '登录'; 
+            document.getElementById('authBtn').innerText = '登录'; 
+            document.getElementById('authSwitch').innerText = '没有账号？点此注册'; 
+            document.getElementById('authModal').classList.remove('hidden'); 
+            document.getElementById('authModal').classList.add('flex'); 
+        }
+        
+        function showRegisterModal() { 
+            authMode = 'register'; 
+            document.getElementById('modalTitle').innerText = '注册'; 
+            document.getElementById('authBtn').innerText = '注册'; 
+            document.getElementById('authSwitch').innerText = '已有账号？点此登录'; 
+            document.getElementById('authModal').classList.remove('hidden'); 
+            document.getElementById('authModal').classList.add('flex'); 
+        }
+        
+        function closeAuthModal() { 
+            document.getElementById('authModal').classList.add('hidden'); 
+            document.getElementById('authModal').classList.remove('flex'); 
+        }
+        
+        function toggleAuthMode() { 
+            if(authMode === 'login') showRegisterModal(); else showLoginModal(); 
+        }
         
         async function submitAuth() {
             const email = document.getElementById('authEmail').value;
