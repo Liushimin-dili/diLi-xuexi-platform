@@ -159,22 +159,19 @@
         <!-- 真题页 -->
         <div id="examTab" class="hidden p-4">
             <h2 class="font-bold text-lg mb-3">中考真题</h2>
-            <div class="space-y-2" id="examList">
-                <div class="bg-white p-3 rounded-lg shadow-sm">
-                    <h3 class="font-medium text-sm">2024年上海市中考地理真题</h3>
-                    <p class="text-xs text-gray-500 mt-1">满分：100分 | 时间：60分钟</p>
-                    <button class="mt-2 bg-blue-500 text-white px-3 py-1 rounded text-xs">开始作答</button>
-                </div>
-                <div class="bg-white p-3 rounded-lg shadow-sm">
-                    <h3 class="font-medium text-sm">2023年北京市中考地理真题</h3>
-                    <p class="text-xs text-gray-500 mt-1">满分：100分 | 时间：60分钟</p>
-                    <button class="mt-2 bg-blue-500 text-white px-3 py-1 rounded text-xs">开始作答</button>
-                </div>
-                <div class="bg-white p-3 rounded-lg shadow-sm">
-                    <h3 class="font-medium text-sm">2023年广东省中考地理真题</h3>
-                    <p class="text-xs text-gray-500 mt-1">满分：100分 | 时间：60分钟</p>
-                    <button class="mt-2 bg-blue-500 text-white px-3 py-1 rounded text-xs">开始作答</button>
-                </div>
+            <div class="mb-3 flex gap-2 overflow-x-auto pb-2">
+                <button onclick="filterExam('all')" class="px-3 py-1 bg-blue-500 text-white rounded-full text-xs whitespace-nowrap">全部</button>
+                <button onclick="filterExam('2024')" class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs whitespace-nowrap">2024年</button>
+                <button onclick="filterExam('2023')" class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs whitespace-nowrap">2023年</button>
+                <button onclick="filterExam('2022')" class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs whitespace-nowrap">2022年</button>
+            </div>
+            <div class="space-y-2" id="examList"></div>
+            
+            <h2 class="font-bold text-lg mt-6 mb-3">模拟考试</h2>
+            <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-4 text-white mb-3">
+                <h3 class="font-bold">中考全真模拟</h3>
+                <p class="text-xs opacity-80">共25题，时间60分钟</p>
+                <button onclick="startMockExam()" class="mt-2 bg-white text-purple-600 px-4 py-2 rounded-lg text-sm font-bold">开始考试</button>
             </div>
         </div>
         
@@ -305,8 +302,8 @@
                 </div>
                 <div id="quizContent"></div>
                 <div class="mt-3 flex gap-2">
-                    <button onclick="prevQuiz()" id="prevBtn" class="flex-1 bg-gray-200 py-2 rounded-lg text-sm">上一题</button>
-                    <button onclick="nextQuiz()" id="nextBtn" class="flex-1 bg-blue-500 text-white py-2 rounded-lg text-sm">下一题</button>
+                    <button onclick="prevMockQuestion()" id="prevBtn" class="flex-1 bg-gray-200 py-2 rounded-lg text-sm">上一题</button>
+                    <button onclick="nextMockQuestion()" id="nextBtn" class="flex-1 bg-blue-500 text-white py-2 rounded-lg text-sm">下一题</button>
                 </div>
             </div>
         </div>
@@ -326,31 +323,172 @@
         ];
         
         const questions = [
-            { chapter: 1, q: "中国位于哪个大洲？", options: ["亚洲", "欧洲", "北美洲", "非洲"], a: 0 },
-            { chapter: 1, q: "中国陆地面积约多少万平方千米？", options: ["960万", "9600万", "96万", "9.6万"], a: 0 },
-            { chapter: 1, q: "中国最北端位于哪个省？", options: ["黑龙江", "吉林", "辽宁", "内蒙古"], a: 0 },
-            { chapter: 1, q: "中国人口地理分界线是？", options: ["黑河-腾冲线", "长江-黄河线", "京沪线", "陇海线"], a: 0 },
-            { chapter: 1, q: "中国56个民族中人口最多的是？", options: ["汉族", "壮族", "满族", "回族"], a: 0 },
-            { chapter: 2, q: "中国地势特点是什么？", options: ["西高东低", "东高西低", "南高北低", "北高南低"], a: 0 },
-            { chapter: 2, q: "中国第一级阶梯主要地形区是？", options: ["青藏高原", "内蒙古高原", "黄土高原", "云贵高原"], a: 0 },
-            { chapter: 2, q: "长江注入哪个海洋？", options: ["东海", "黄海", "渤海", "南海"], a: 0 },
-            { chapter: 2, q: "黄河含沙量在世界河流中排名？", options: ["第一位", "第二位", "第三位", "第四位"], a: 0 },
-            { chapter: 2, q: "中国季风气候的特点是？", options: ["雨热同期", "全年温和", "全年炎热", "冬季多雨"], a: 0 },
-            { chapter: 3, q: "以下哪个是非可再生资源？", options: ["矿产资源", "土地资源", "水资源", "森林资源"], a: 0 },
-            { chapter: 3, q: "中国水资源分布特点是？", options: ["南多北少", "北多南少", "东多西少", "西多东少"], a: 0 },
-            { chapter: 3, q: "南水北调工程中线取水地点是？", options: ["丹江口水库", "三峡", "扬州", "小浪底"], a: 0 },
-            { chapter: 4, q: "中国最重要的交通运输方式是？", options: ["铁路", "公路", "航空", "水路"], a: 0 },
-            { chapter: 4, q: "中国最大综合性工业基地是？", options: ["沪宁杭", "辽中南", "京津唐", "珠江三角洲"], a: 0 },
-            { chapter: 4, q: "中国南方主要耕地类型是？", options: ["水田", "旱地", "草地", "林地"], a: 0 }
+            // 第一章
+            { chapter: 1, type: 'choice', q: "中国位于哪个大洲？", options: ["亚洲", "欧洲", "北美洲", "非洲"], a: 0 },
+            { chapter: 1, type: 'choice', q: "中国陆地面积约多少万平方千米？", options: ["960万", "9600万", "96万", "9.6万"], a: 0 },
+            { chapter: 1, type: 'choice', q: "中国最北端位于哪个省？", options: ["黑龙江", "吉林", "辽宁", "内蒙古"], a: 0 },
+            { chapter: 1, type: 'choice', q: "中国人口地理分界线是？", options: ["黑河-腾冲线", "长江-黄河线", "京沪线", "陇海线"], a: 0 },
+            { chapter: 1, type: 'choice', q: "中国56个民族中人口最多的是？", options: ["汉族", "壮族", "满族", "回族"], a: 0 },
+            { chapter: 1, type: 'choice', q: "中国陆上邻国数量是？", options: ["14个", "12个", "10个", "8个"], a: 0 },
+            { chapter: 1, type: 'choice', q: "中国濒临的海洋从北到南依次是？", options: ["渤海、黄海、东海、南海", "黄海、渤海、东海、南海", "东海、黄海、渤海、南海", "南海、东海、黄海、渤海"], a: 0 },
+            // 第二章
+            { chapter: 2, type: 'choice', q: "中国地势特点是什么？", options: ["西高东低", "东高西低", "南高北低", "北高南低"], a: 0 },
+            { chapter: 2, type: 'choice', q: "中国第一级阶梯主要地形区是？", options: ["青藏高原", "内蒙古高原", "黄土高原", "云贵高原"], a: 0 },
+            { chapter: 2, type: 'choice', q: "长江注入哪个海洋？", options: ["东海", "黄海", "渤海", "南海"], a: 0 },
+            { chapter: 2, type: 'choice', q: "黄河含沙量在世界河流中排名？", options: ["第一位", "第二位", "第三位", "第四位"], a: 0 },
+            { chapter: 2, type: 'choice', q: "中国季风气候的特点是？", options: ["雨热同期", "全年温和", "全年炎热", "冬季多雨"], a: 0 },
+            { chapter: 2, type: 'choice', q: "中国最大的湖泊是？", options: ["青海湖", "鄱阳湖", "洞庭湖", "太湖"], a: 0 },
+            { chapter: 2, type: 'choice', q: "世界最高峰位于哪个山脉？", options: ["喜马拉雅山", "昆仑山", "天山", "大兴安岭"], a: 0 },
+            // 第三章
+            { chapter: 3, type: 'choice', q: "以下哪个是非可再生资源？", options: ["矿产资源", "土地资源", "水资源", "森林资源"], a: 0 },
+            { chapter: 3, type: 'choice', q: "中国水资源分布特点是？", options: ["南多北少", "北多南少", "东多西少", "西多东少"], a: 0 },
+            { chapter: 3, type: 'choice', q: "南水北调工程中线取水地点是？", options: ["丹江口水库", "三峡", "扬州", "小浪底"], a: 0 },
+            { chapter: 3, type: 'choice', q: "中国土地利用类型中面积最大的是？", options: ["草地", "林地", "耕地", "建筑用地"], a: 0 },
+            { chapter: 3, type: 'choice', q: "解决水资源时间分布不均的主要措施是？", options: ["修建水库", "跨流域调水", "节约用水", "人工降雨"], a: 0 },
+            // 第四章
+            { chapter: 4, type: 'choice', q: "中国最重要的交通运输方式是？", options: ["铁路", "公路", "航空", "水路"], a: 0 },
+            { chapter: 4, type: 'choice', q: "中国最大综合性工业基地是？", options: ["沪宁杭", "辽中南", "京津唐", "珠江三角洲"], a: 0 },
+            { chapter: 4, type: 'choice', q: "中国南方主要耕地类型是？", options: ["水田", "旱地", "草地", "林地"], a: 0 },
+            { chapter: 4, type: 'choice', q: "高新技术产业主要分布在？", options: ["东部沿海", "西部内陆", "中部地区", "南北极"], a: 0 },
+            { chapter: 4, type: 'choice', q: "中国农产品产量居世界首位的是？", options: ["粮食", "棉花", "油料", "糖料"], a: 0 },
+            { chapter: 4, type: 'choice', q: "被称为"工业血液"的是？", options: ["石油", "煤炭", "铁矿石", "稀土"], a: 0 }
         ];
         
-        // 状态
-        let currentTab = 'home';
-        let wrongAnswers = JSON.parse(localStorage.getItem('geo_wrong') || '[]');
-        let favorites = JSON.parse(localStorage.getItem('geo_favorites') || '[]');
-        let learned = JSON.parse(localStorage.getItem('geo_learned') || '{}');
-        let quizIndex = 0;
-        let currentQuestions = [];
+        // 真题数据
+        const exams = [
+            { id: 1, year: '2024', region: '上海', title: '2024年上海市中考地理真题', questions: 25, time: 60, score: 100 },
+            { id: 2, year: '2024', region: '北京', title: '2024年北京市中考地理真题', questions: 25, time: 60, score: 100 },
+            { id: 3, year: '2024', region: '广东', title: '2024年广东省中考地理真题', questions: 25, time: 60, score: 100 },
+            { id: 4, year: '2023', region: '上海', title: '2023年上海市中考地理真题', questions: 25, time: 60, score: 100 },
+            { id: 5, year: '2023', region: '北京', title: '2023年北京市中考地理真题', questions: 25, time: 60, score: 100 },
+            { id: 6, year: '2023', region: '广东', title: '2023年广东省中考地理真题', questions: 25, time: 60, score: 100 },
+            { id: 7, year: '2022', region: '上海', title: '2022年上海市中考地理真题', questions: 25, time: 60, score: 100 },
+            { id: 8, year: '2022', region: '北京', title: '2022年北京市中考地理真题', questions: 25, time: 60, score: 100 },
+            { id: 9, year: '2022', region: '江苏', title: '2022年江苏省中考地理真题', questions: 25, time: 60, score: 100 }
+        ];
+        
+        let mockExamQuestions = [];
+        let mockExamAnswers = {};
+        let mockExamIndex = 0;
+        let mockExamScore = 0;
+        let examTimer = null;
+        
+        // 渲染真题列表
+        function renderExamList(list) {
+            let html = '';
+            list.forEach(exam => {
+                html += `<div class="bg-white p-3 rounded-lg shadow-sm">
+                    <h3 class="font-medium text-sm">${exam.title}</h3>
+                    <p class="text-xs text-gray-500 mt-1">${exam.region} | 满分${exam.score}分 | 时间${exam.time}分钟</p>
+                    <button onclick="startExam(${exam.id})" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded text-xs">开始作答</button>
+                </div>`;
+            });
+            document.getElementById('examList').innerHTML = html;
+        }
+        
+        function filterExam(year) {
+            if(year === 'all') {
+                renderExamList(exams);
+            } else {
+                renderExamList(exams.filter(e => e.year === year));
+            }
+        }
+        
+        function startExam(examId) {
+            // 模拟考试 - 随机25题
+            startMockExam();
+        }
+        
+        function startMockExam() {
+            // 随机抽取25题
+            const shuffled = [...questions].sort(() => Math.random() - 0.5);
+            mockExamQuestions = shuffled.slice(0, 25);
+            mockExamAnswers = {};
+            mockExamIndex = 0;
+            mockExamScore = 0;
+            
+            document.getElementById('homeTab').classList.add('hidden');
+            document.getElementById('examTab').classList.add('hidden');
+            document.getElementById('quizTab').classList.remove('hidden');
+            
+            renderMockExam();
+            
+            // 启动计时器
+            let timeLeft = 60 * 60; // 60分钟
+            examTimer = setInterval(() => {
+                timeLeft--;
+                const mins = Math.floor(timeLeft / 60);
+                const secs = timeLeft % 60;
+                document.getElementById('examTimer').innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+                if(timeLeft <= 0) {
+                    clearInterval(examTimer);
+                    submitMockExam();
+                }
+            }, 1000);
+        }
+        
+        function renderMockExam() {
+            if(mockExamIndex >= mockExamQuestions.length) {
+                submitMockExam();
+                return;
+            }
+            const q = mockExamQuestions[mockExamIndex];
+            let html = `<div class="flex justify-between items-center mb-2">
+                <span class="text-sm text-gray-500">${mockExamIndex + 1}/${mockExamQuestions.length}</span>
+                <span id="examTimer" class="text-sm text-red-500">60:00</span>
+            </div>
+            <p class="font-medium mb-3">${q.q}</p><div class="space-y-2">`;
+            q.options.forEach((o, i) => {
+                const checked = mockExamAnswers[mockExamIndex] === i ? 'checked' : '';
+                html += `<label class="flex items-center p-2 bg-gray-50 rounded cursor-pointer">
+                    <input type="radio" name="answer" value="${i}" ${checked} class="mr-2" onchange="saveMockAnswer(${i})">
+                    <span class="text-sm">${o}</span>
+                </label>`;
+            });
+            html += `</div>`;
+            document.getElementById('quizContent').innerHTML = html;
+            
+            // 更新按钮
+            const nextBtn = document.getElementById('nextBtn');
+            if(mockExamIndex === mockExamQuestions.length - 1) {
+                nextBtn.innerText = '交卷';
+                nextBtn.onclick = submitMockExam;
+            } else {
+                nextBtn.innerText = '下一题';
+                nextBtn.onclick = nextMockQuestion;
+            }
+        }
+        
+        function saveMockAnswer(i) {
+            mockExamAnswers[mockExamIndex] = i;
+        }
+        
+        function nextMockQuestion() {
+            mockExamIndex++;
+            renderMockExam();
+        }
+        
+        function prevMockQuestion() {
+            if(mockExamIndex > 0) {
+                mockExamIndex--;
+                renderMockExam();
+            }
+        }
+        
+        function submitMockExam() {
+            if(examTimer) clearInterval(examTimer);
+            
+            mockExamScore = 0;
+            mockExamQuestions.forEach((q, i) => {
+                if(mockExamAnswers[i] === q.a) mockExamScore++;
+            });
+            
+            const percent = Math.round((mockExamScore / mockExamQuestions.length) * 100);
+            
+            alert(`考试完成！\n得分：${mockExamScore}/${mockExamQuestions.length} (${percent}%)\n正确${mockExamScore}题，错误${mockExamQuestions.length - mockExamScore}题`);
+            
+            showTab('home');
+        }
         
         // 初始化
         window.onload = function() {
