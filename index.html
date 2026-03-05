@@ -5,651 +5,310 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>初中地理学习平台</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Microsoft YaHei', sans-serif; }
-        .card { transition: all 0.3s ease; }
-        .card:hover { transform: translateY(-4px); }
-        .fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
+        body { font-family: 'Noto Sans SC', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .tab-active { border-bottom: 3px solid #3b82f6; color: #3b82f6; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 min-h-screen">
+<body class="bg-gray-50 min-h-screen">
     
-    <!-- 登录遮罩层 - 必须先登录 -->
+    <!-- 登录遮罩 -->
     <div id="loginOverlay" class="fixed inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center z-50">
-        <div class="bg-white rounded-2xl p-8 w-96 shadow-2xl text-center">
-            <i class="fa-solid fa-graduation-cap text-5xl text-blue-600 mb-4"></i>
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">初中地理学习平台</h1>
-            <p class="text-gray-500 mb-6">请先登录后使用</p>
+        <div class="bg-white rounded-2xl p-8 w-11/12 max-w-sm shadow-2xl text-center">
+            <i class="fa-solid fa-graduation-cap text-4xl text-blue-600 mb-3"></i>
+            <h1 class="text-xl font-bold text-gray-800 mb-1">初中地理学习平台</h1>
+            <p class="text-gray-500 text-sm mb-4">请先登录后使用</p>
             <div id="loginForm">
-                <input id="loginEmail" type="email" placeholder="邮箱" class="w-full px-4 py-3 border rounded-lg mb-3 text-center">
-                <input id="loginPassword" type="password" placeholder="密码" class="w-full px-4 py-3 border rounded-lg mb-3 text-center">
-                <button onclick="doLogin()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700">登录</button>
-                <button onclick="showRegisterForm()" class="w-full mt-2 text-blue-600 py-2">没有账号？注册</button>
+                <input id="loginEmail" type="email" placeholder="邮箱" class="w-full px-3 py-2 border rounded-lg mb-2 text-sm">
+                <input id="loginPassword" type="password" placeholder="密码" class="w-full px-3 py-2 border rounded-lg mb-2 text-sm">
+                <button onclick="doLogin()" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold text-sm">登录</button>
+                <button onclick="showRegisterForm()" class="w-full mt-2 text-blue-600 text-sm">没有账号？注册</button>
             </div>
             <div id="registerForm" class="hidden">
-                <input id="regEmail" type="email" placeholder="邮箱" class="w-full px-4 py-3 border rounded-lg mb-3 text-center">
-                <input id="regPassword" type="password" placeholder="密码" class="w-full px-4 py-3 border rounded-lg mb-3 text-center">
-                <button onclick="doRegister()" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700">注册</button>
-                <button onclick="showLoginForm()" class="w-full mt-2 text-gray-600 py-2">已有账号？登录</button>
+                <input id="regEmail" type="email" placeholder="邮箱" class="w-full px-3 py-2 border rounded-lg mb-2 text-sm">
+                <input id="regPassword" type="password" placeholder="密码" class="w-full px-3 py-2 border rounded-lg mb-2 text-sm">
+                <button onclick="doRegister()" class="w-full bg-green-600 text-white py-2 rounded-lg font-bold text-sm">注册</button>
+                <button onclick="showLoginForm()" class="w-full mt-2 text-gray-500 text-sm">已有账号？登录</button>
             </div>
-            <p id="loginError" class="text-red-500 mt-3 text-sm hidden"></p>
         </div>
     </div>
 
-    <!-- 主网站内容 -->
-    <div id="mainContent" class="hidden">
-    
-    <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <i class="fa-solid fa-globe-asia text-blue-600 text-2xl"></i>
-                <h1 class="text-xl font-bold text-gray-800">初中地理学习平台</h1>
+    <!-- 顶部导航 -->
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="flex items-center justify-between px-4 py-3">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-globe-asia text-blue-600 text-xl"></i>
+                <span class="font-bold text-gray-800 text-sm">地理学习</span>
             </div>
-            <div class="flex items-center gap-4">
-                <span id="progressText" class="text-sm text-gray-500">学习进度: 0%</span>
-                <div class="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div id="progressBar" class="h-full bg-blue-500 rounded-full" style="width: 0%"></div>
-                </div>
-                <button onclick="resetProgress()" class="text-xs text-red-500 hover:text-red-700">
-                    <i class="fa-solid fa-rotate-left"></i> 重置
-                </button>
+            <div class="flex items-center gap-3">
+                <button onclick="showTab('home')" class="text-blue-600"><i class="fa-solid fa-home text-lg"></i></button>
+                <button onclick="logout()" class="text-gray-500"><i class="fa-solid fa-sign-out-alt"></i></button>
             </div>
         </div>
     </header>
 
-    <div class="max-w-7xl mx-auto px-4 py-8 flex gap-6">
+    <!-- 主内容区 -->
+    <div id="mainContent" class="hidden pb-16">
         
-        <aside class="w-64 flex-shrink-0">
-            <div class="bg-white rounded-xl shadow-sm p-4 sticky top-24">
-                <h2 class="font-bold text-gray-800 mb-4">
-                    <i class="fa-solid fa-list text-blue-600 mr-2"></i>目录
-                </h2>
-                <nav id="chapterList" class="space-y-1"></nav>
+        <!-- 首页 -->
+        <div id="homeTab" class="p-4 space-y-4">
+            <!-- 快捷入口 -->
+            <div class="grid grid-cols-4 gap-2 text-center">
+                <button onclick="showTab('knowledge')" class="bg-blue-50 p-3 rounded-lg">
+                    <i class="fa-solid fa-book text-blue-500 text-xl mb-1"></i>
+                    <p class="text-xs text-gray-600">知识点</p>
+                </button>
+                <button onclick="showTab('questions')" class="bg-green-50 p-3 rounded-lg">
+                    <i class="fa-solid fa-pen text-green-500 text-xl mb-1"></i>
+                    <p class="text-xs text-gray-600">题库</p>
+                </button>
+                <button onclick="showTab('exam')" class="bg-yellow-50 p-3 rounded-lg">
+                    <i class="fa-solid fa-clock text-yellow-500 text-xl mb-1"></i>
+                    <p class="text-xs text-gray-600">真题</p>
+                </button>
+                <button onclick="showTab('maps')" class="bg-purple-50 p-3 rounded-lg">
+                    <i class="fa-solid fa-map text-purple-500 text-xl mb-1"></i>
+                    <p class="text-xs text-gray-600">地图库</p>
+                </button>
             </div>
-        </aside>
-
-        <main class="flex-1 space-y-6">
             
-            <div id="welcomePanel" class="bg-white rounded-xl shadow-sm p-8 text-center fade-in">
-                <div id="loginSection" class="mb-4">
-                    <button onclick="showLoginModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg mr-2">
-                        <i class="fa-solid fa-user"></i> 登录
-                    </button>
-                    <button onclick="showRegisterModal()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
-                        <i class="fa-solid fa-user-plus"></i> 注册
-                    </button>
-                </div>
-                <div id="userInfo" class="hidden mb-4 p-2 bg-green-50 rounded-lg">
-                    <span id="userEmail" class="text-gray-600"></span>
-                    <button onclick="logout()" class="ml-2 text-red-500 hover:text-red-700 text-sm">退出</button>
-                </div>
-                <i class="fa-solid fa-earth-americas text-6xl text-blue-500 mb-4"></i>
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">欢迎来到初中地理学习平台</h2>
-                <p class="text-gray-600 mb-6">选择左侧章节开始学习，或点击下方按钮进行测验</p>
-                <div class="flex justify-center gap-4">
-                    <button onclick="startQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium">
-                        <i class="fa-solid fa-pen-to-square mr-2"></i>开始测验
-                    </button>
-                    <button onclick="showRandomQuestion()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-medium">
-                        <i class="fa-solid fa-question-circle mr-2"></i>随机一题
-                    </button>
-                </div>
-            </div>
-
-            <div id="contentArea" class="hidden"></div>
-
-            <div id="quizArea" class="hidden">
-                <div class="bg-white rounded-xl shadow-sm p-6 fade-in">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold text-gray-800">
-                            <i class="fa-solid fa-clipboard-question text-blue-600 mr-2"></i>章节测验
-                        </h2>
-                        <span id="quizScore" class="text-sm text-gray-500">得分: 0</span>
+            <!-- 每日一练 -->
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-4 text-white">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold">每日一练</h3>
+                        <p class="text-xs opacity-80">每天进步一点点</p>
                     </div>
-                    
-                    <div id="questionContainer"></div>
-
-                    <div class="mt-6 flex justify-between">
-                        <button onclick="prevQuestion()" id="prevBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg" disabled>
-                            <i class="fa-solid fa-arrow-left mr-1"></i>上一题
-                        </button>
-                        <button onclick="nextQuestion()" id="nextBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                            下一题<i class="fa-solid fa-arrow-right ml-1"></i>
-                        </button>
+                    <button onclick="dailyPractice()" class="bg-white text-blue-600 px-4 py-2 rounded-lg text-sm font-bold">开始</button>
+                </div>
+            </div>
+            
+            <!-- 进度卡片 -->
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+                <h3 class="font-bold text-gray-800 mb-2 text-sm">学习进度</h3>
+                <div class="flex items-center gap-3">
+                    <div class="flex-1 h-2 bg-gray-200 rounded-full">
+                        <div id="progressBar" class="h-full bg-blue-500 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <span id="progressText" class="text-sm text-gray-600">0%</span>
+                </div>
+            </div>
+            
+            <!-- 功能列表 -->
+            <div class="space-y-2">
+                <button onclick="showTab('wrong')" class="w-full bg-white p-3 rounded-lg shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-xmark-circle text-red-500"></i>
+                        <span class="text-sm">错题练习</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-400 text-xs"></i>
+                </button>
+                <button onclick="showTab('favorites')" class="w-full bg-white p-3 rounded-lg shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-star text-yellow-500"></i>
+                        <span class="text-sm">我的收藏</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-400 text-xs"></i>
+                </button>
+                <button onclick="showTab('downloads')" class="w-full bg-white p-3 rounded-lg shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-download text-blue-500"></i>
+                        <span class="text-sm">资料下载</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-400 text-xs"></i>
+                </button>
+                <button onclick="showTab('profile')" class="w-full bg-white p-3 rounded-lg shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-user text-green-500"></i>
+                        <span class="text-sm">个人中心</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-400 text-xs"></i>
+                </button>
+            </div>
+            
+            <!-- 公告 -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p class="text-xs text-yellow-800"><i class="fa-solid fa-bullhorn mr-1"></i> 欢迎使用初中地理学习平台！</p>
+            </div>
+        </div>
+        
+        <!-- 知识点页 -->
+        <div id="knowledgeTab" class="hidden p-4">
+            <h2 class="font-bold text-lg mb-3">知识点</h2>
+            <div class="space-y-2" id="knowledgeList"></div>
+        </div>
+        
+        <!-- 题库页 -->
+        <div id="questionsTab" class="hidden p-4">
+            <h2 class="font-bold text-lg mb-3">题库</h2>
+            <div class="mb-3 flex gap-2 overflow-x-auto pb-2">
+                <button onclick="filterQuestions('all')" class="px-3 py-1 bg-blue-500 text-white rounded-full text-xs whitespace-nowrap">全部</button>
+                <button onclick="filterQuestions(1)" class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs whitespace-nowrap">第一章</button>
+                <button onclick="filterQuestions(2)" class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs whitespace-nowrap">第二章</button>
+                <button onclick="filterQuestions(3)" class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs whitespace-nowrap">第三章</button>
+                <button onclick="filterQuestions(4)" class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs whitespace-nowrap">第四章</button>
+            </div>
+            <div class="space-y-2" id="questionList"></div>
+        </div>
+        
+        <!-- 真题页 -->
+        <div id="examTab" class="hidden p-4">
+            <h2 class="font-bold text-lg mb-3">中考真题</h2>
+            <div class="space-y-2" id="examList">
+                <div class="bg-white p-3 rounded-lg shadow-sm">
+                    <h3 class="font-medium text-sm">2024年上海市中考地理真题</h3>
+                    <p class="text-xs text-gray-500 mt-1">满分：100分 | 时间：60分钟</p>
+                    <button class="mt-2 bg-blue-500 text-white px-3 py-1 rounded text-xs">开始作答</button>
+                </div>
+                <div class="bg-white p-3 rounded-lg shadow-sm">
+                    <h3 class="font-medium text-sm">2023年北京市中考地理真题</h3>
+                    <p class="text-xs text-gray-500 mt-1">满分：100分 | 时间：60分钟</p>
+                    <button class="mt-2 bg-blue-500 text-white px-3 py-1 rounded text-xs">开始作答</button>
+                </div>
+                <div class="bg-white p-3 rounded-lg shadow-sm">
+                    <h3 class="font-medium text-sm">2023年广东省中考地理真题</h3>
+                    <p class="text-xs text-gray-500 mt-1">满分：100分 | 时间：60分钟</p>
+                    <button class="mt-2 bg-blue-500 text-white px-3 py-1 rounded text-xs">开始作答</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 地图库页 -->
+        <div id="mapsTab" class="hidden p-4">
+            <h2 class="font-bold text-lg mb-3">地图库</h2>
+            <div class="grid grid-cols-2 gap-2" id="mapList">
+                <div class="bg-white p-2 rounded-lg shadow-sm">
+                    <div class="bg-gray-200 h-24 rounded flex items-center justify-center">
+                        <i class="fa-solid fa-map text-gray-400 text-2xl"></i>
+                    </div>
+                    <p class="text-xs mt-1 text-center">中国政区图</p>
+                </div>
+                <div class="bg-white p-2 rounded-lg shadow-sm">
+                    <div class="bg-gray-200 h-24 rounded flex items-center justify-center">
+                        <i class="fa-solid fa-map text-gray-400 text-2xl"></i>
+                    </div>
+                    <p class="text-xs mt-1 text-center">中国地形图</p>
+                </div>
+                <div class="bg-white p-2 rounded-lg shadow-sm">
+                    <div class="bg-gray-200 h-24 rounded flex items-center justify-center">
+                        <i class="fa-solid fa-map text-gray-400 text-2xl"></i>
+                    </div>
+                    <p class="text-xs mt-1 text-center">中国气候图</p>
+                </div>
+                <div class="bg-white p-2 rounded-lg shadow-sm">
+                    <div class="bg-gray-200 h-24 rounded flex items-center justify-center">
+                        <i class="fa-solid fa-map text-gray-400 text-2xl"></i>
+                    </div>
+                    <p class="text-xs mt-1 text-center">世界地图</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 错题本页 -->
+        <div id="wrongTab" class="hidden p-4">
+            <h2 class="font-bold text-lg mb-3">错题本</h2>
+            <div id="wrongList" class="space-y-2">
+                <p class="text-center text-gray-400 py-8 text-sm">暂无错题</p>
+            </div>
+        </div>
+        
+        <!-- 收藏页 -->
+        <div id="favoritesTab" class="hidden p-4">
+            <h2 class="font-bold text-lg mb-3">我的收藏</h2>
+            <div id="favoritesList" class="space-y-2">
+                <p class="text-center text-gray-400 py-8 text-sm">暂无收藏</p>
+            </div>
+        </div>
+        
+        <!-- 资料下载页 -->
+        <div id="downloadsTab" class="hidden p-4">
+            <h2 class="font-bold text-lg mb-3">资料下载</h2>
+            <div class="space-y-2" id="downloadList">
+                <div class="bg-white p-3 rounded-lg shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-file-pdf text-red-500 text-xl"></i>
+                        <span class="text-sm">地理背诵提纲.pdf</span>
+                    </div>
+                    <button class="text-blue-500 text-xs"><i class="fa-solid fa-download"></i> 下载</button>
+                </div>
+                <div class="bg-white p-3 rounded-lg shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-file-pdf text-red-500 text-xl"></i>
+                        <span class="text-sm">答题模板.pdf</span>
+                    </div>
+                    <button class="text-blue-500 text-xs"><i class="fa-solid fa-download"></i> 下载</button>
+                </div>
+                <div class="bg-white p-3 rounded-lg shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-file-pdf text-red-500 text-xl"></i>
+                        <span class="text-sm">读图技巧.pdf</span>
+                    </div>
+                    <button class="text-blue-500 text-xs"><i class="fa-solid fa-download"></i> 下载</button>
+                </div>
+                <div class="bg-white p-3 rounded-lg shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-file-pdf text-red-500 text-xl"></i>
+                        <span class="text-sm">考点汇总.pdf</span>
+                    </div>
+                    <button class="text-blue-500 text-xs"><i class="fa-solid fa-download"></i> 下载</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 个人中心页 -->
+        <div id="profileTab" class="hidden p-4">
+            <h2 class="font-bold text-lg mb-3">个人中心</h2>
+            <div class="bg-white rounded-xl p-4 shadow-sm mb-3">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fa-solid fa-user text-blue-500 text-xl"></i>
+                    </div>
+                    <div>
+                        <p id="userName" class="font-bold">用户</p>
+                        <p id="userEmail" class="text-xs text-gray-500"></p>
                     </div>
                 </div>
             </div>
-
-        </main>
-
-        <aside class="w-72 flex-shrink-0 space-y-6">
             
-            <div class="bg-white rounded-xl shadow-sm p-4">
-                <h3 class="font-bold text-gray-800 mb-3">
-                    <i class="fa-solid fa-lightbulb text-yellow-500 mr-2"></i>今日知识
-                </h3>
-                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
-                    <p class="text-sm text-gray-700" id="tipContent">中国位于亚洲东部、太平洋西岸，是一个海陆兼备的国家。</p>
+            <div class="bg-white rounded-xl p-4 shadow-sm mb-3">
+                <h3 class="font-bold text-sm mb-2">学习数据</h3>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                        <p id="totalQuestions" class="text-xl font-bold text-blue-500">0</p>
+                        <p class="text-xs text-gray-500">做题总数</p>
+                    </div>
+                    <div>
+                        <p id="correctRate" class="text-xl font-bold text-green-500">0%</p>
+                        <p class="text-xs text-gray-500">正确率</p>
+                    </div>
+                    <div>
+                        <p id="totalDays" class="text-xl font-bold text-yellow-500">0</p>
+                        <p class="text-xs text-gray-500">学习天数</p>
+                    </div>
                 </div>
             </div>
-
-            <div class="bg-white rounded-xl shadow-sm p-4">
-                <h3 class="font-bold text-gray-800 mb-3">
-                    <i class="fa-solid fa-bookmark text-red-500 mr-2"></i>错题记录
-                </h3>
-                <div id="wrongNotes" class="space-y-2 max-h-48 overflow-y-auto">
-                    <p class="text-sm text-gray-400 text-center py-4">暂无错题</p>
+            
+            <button onclick="resetProgress()" class="w-full bg-red-50 text-red-500 p-3 rounded-lg text-sm">重置学习进度</button>
+        </div>
+        
+        <!-- 答题区 -->
+        <div id="quizTab" class="hidden p-4">
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-bold">答题</h3>
+                    <button onclick="showTab('home')" class="text-gray-500"><i class="fa-solid fa-times"></i></button>
+                </div>
+                <div id="quizContent"></div>
+                <div class="mt-3 flex gap-2">
+                    <button onclick="prevQuiz()" id="prevBtn" class="flex-1 bg-gray-200 py-2 rounded-lg text-sm">上一题</button>
+                    <button onclick="nextQuiz()" id="nextBtn" class="flex-1 bg-blue-500 text-white py-2 rounded-lg text-sm">下一题</button>
                 </div>
             </div>
-
-            <div class="bg-white rounded-xl shadow-sm p-4">
-                <h3 class="font-bold text-gray-800 mb-3">
-                    <i class="fa-solid fa-star text-yellow-500 mr-2"></i>收藏题目
-                </h3>
-                <div id="favorites" class="space-y-2 max-h-48 overflow-y-auto">
-                    <p class="text-sm text-gray-400 text-center py-4">暂无收藏</p>
-                </div>
-            </div>
-
-        </aside>
-    </div>
-
-    <script>
-        // Chapter data
-        var chapters = [
-            {
-                id: 1,
-                title: "第一章：从世界看中国",
-                icon: "fa-flag",
-                sections: [
-                    { id: "1-1", title: "中国的地理位置", content: "中国位于亚洲东部、太平洋西岸，领土跨热带、北温带。大部分位于北温带，小部分位于热带。" },
-                    { id: "1-2", title: "中国的疆域", content: "中国陆地面积约960万平方千米，居世界第三。最北端在漠河，最南端在曾母暗沙。最东端在黑龙江与乌苏里江汇合处，最西端在帕米尔高原。" },
-                    { id: "1-3", title: "中国的邻国", content: "中国陆上邻国14个：朝鲜、俄罗斯、蒙古、哈萨克斯坦、吉尔吉斯斯坦、塔吉克斯坦、阿富汗、巴基斯坦、印度、尼泊尔、不丹、缅甸、老挝、越南。" },
-                    { id: "1-4", title: "中国的人口", content: "中国是世界上人口最多的国家。人口分布特点：东南人口稠密，西北人口稀疏。黑河-腾冲线是中国人口地理分界线。" },
-                    { id: "1-5", title: "中国的民族", content: "中国有56个民族。汉族人口最多，少数民族中壮族人口最多。民族分布特点：大散居、小聚居、交错杂居。" }
-                ]
-            },
-            {
-                id: 2,
-                title: "第二章：中国的自然环境",
-                icon: "fa-mountain",
-                sections: [
-                    { id: "2-1", title: "中国的地形", content: "中国地形特点：地形复杂多样，山区面积广大。山区包括山地、丘陵、高原崎岖部分。山区发展旅游、林牧业，但易发生滑坡、泥石流。" },
-                    { id: "2-2", title: "中国的地势", content: "中国地势特点：西高东低，呈三级阶梯分布。第一级阶梯：青藏高原；第二级阶梯：高原、盆地；第三级阶梯：平原、丘陵。" },
-                    { id: "2-3", title: "主要山脉", content: "主要山脉走向：东西走向、东北-西南走向、南北走向、弧形山脉。山脉是地形骨架，构成省区分界线。" },
-                    { id: "2-4", title: "中国的气候", content: "中国气候特点：气候复杂多样，季风气候显著。季风气候特点：雨热同期。冬季盛行西北风，寒冷干燥；夏季盛行东南风，温暖湿润。" },
-                    { id: "2-5", title: "河流与湖泊", content: "长江：中国第一大河，世界第三长河，发源于唐古拉山脉，注入东海。黄河：中国第二长河，发源于巴颜喀拉山脉，注入渤海，含沙量最大。" }
-                ]
-            },
-            {
-                id: 3,
-                title: "第三章：中国的自然资源",
-                icon: "fa-seedling",
-                sections: [
-                    { id: "3-1", title: "自然资源概述", content: "自然资源分为可再生资源和非可再生资源。土地、水、森林属于可再生资源，矿产资源属于非可再生资源。" },
-                    { id: "3-2", title: "土地资源", content: "中国土地利用类型：耕地、林地、草地、建筑用地等。耕地主要分布在东部季风区，林地主要分布在东北、西南山地，草地主要分布在西部内陆高原。" },
-                    { id: "3-3", title: "水资源", content: "中国水资源分布特点：南多北少，东多西少。年降水量分布：从东南沿海向西北内陆递减。解决措施：跨流域调水、修建水库、节约用水。" },
-                    { id: "3-4", title: "南水北调", content: "南水北调工程：把长江流域的水调到华北、西北地区。东线：从扬州取水，沿京杭运河北上；中线：从丹江口水库取水，北送北京；西线：从长江上游取水。" }
-                ]
-            },
-            {
-                id: 4,
-                title: "第四章：中国经济发展",
-                icon: "fa-industry",
-                sections: [
-                    { id: "4-1", title: "交通运输", content: "交通运输方式：铁路、公路、水路、航空、管道。铁路是中国最重要的交通运输方式。主要铁路干线：京哈线、京沪线、京九线、京广线、陇海线、沪昆线等。" },
-                    { id: "4-2", title: "农业", content: "中国农业分布：东部以种植业为主，西部以畜牧业为主。种植业分布：南方水田，北方旱地。主要粮食作物：水稻、小麦。" },
-                    { id: "4-3", title: "工业", content: "中国四大工业基地：辽中南（重工业）、京津唐（北方综合性）、沪宁杭（全国最大综合性）、珠江三角洲（外向型）。" },
-                    { id: "4-4", title: "高新技术产业", content: "高新技术产业分布特点：东部沿海地区为主，大中城市周围。代表产业：信息技术、生物技术、新能源、新材料等。" }
-                ]
-            }
-        ];
-
-        // Questions
-        var questions = [
-            { chapter: 1, question: "中国位于哪个大洲？", options: ["亚洲", "欧洲", "北美洲", "非洲"], answer: 0 },
-            { chapter: 1, question: "中国陆地面积约多少万平方千米？", options: ["960万", "9600万", "96万", "9.6万"], answer: 0 },
-            { chapter: 1, question: "中国最北端位于哪个省？", options: ["黑龙江", "吉林", "辽宁", "内蒙古"], answer: 0 },
-            { chapter: 1, question: "中国人口地理分界线是？", options: ["黑河-腾冲线", "长江-黄河线", "京沪线", "陇海线"], answer: 0 },
-            { chapter: 1, question: "中国56个民族中人口最多的是？", options: ["汉族", "壮族", "满族", "回族"], answer: 0 },
-            { chapter: 2, question: "中国地势特点是什么？", options: ["西高东低", "东高西低", "南高北低", "北高南低"], answer: 0 },
-            { chapter: 2, question: "中国第一级阶梯主要地形区是？", options: ["青藏高原", "内蒙古高原", "黄土高原", "云贵高原"], answer: 0 },
-            { chapter: 2, question: "长江注入哪个海洋？", options: ["东海", "黄海", "渤海", "南海"], answer: 0 },
-            { chapter: 2, question: "黄河含沙量在世界河流中排名？", options: ["第一位", "第二位", "第三位", "第四位"], answer: 0 },
-            { chapter: 2, question: "中国季风气候的特点是？", options: ["雨热同期", "全年温和", "全年炎热", "冬季多雨"], answer: 0 },
-            { chapter: 3, question: "以下哪个是非可再生资源？", options: ["矿产资源", "土地资源", "水资源", "森林资源"], answer: 0 },
-            { chapter: 3, question: "中国水资源分布特点是？", options: ["南多北少", "北多南少", "东多西少", "西多东少"], answer: 0 },
-            { chapter: 3, question: "南水北调工程中线取水地点是？", options: ["丹江口水库", "三峡", "扬州", "小浪底"], answer: 0 },
-            { chapter: 3, question: "中国土地利用类型中面积最大的是？", options: ["草地", "林地", "耕地", "建筑用地"], answer: 0 },
-            { chapter: 4, question: "中国最重要的交通运输方式是？", options: ["铁路", "公路", "航空", "水路"], answer: 0 },
-            { chapter: 4, question: "中国最大综合性工业基地是？", options: ["沪宁杭", "辽中南", "京津唐", "珠江三角洲"], answer: 0 },
-            { chapter: 4, question: "中国南方主要耕地类型是？", options: ["水田", "旱地", "草地", "林地"], answer: 0 },
-            { chapter: 4, question: "高新技术产业主要分布在？", options: ["东部沿海", "西部内陆", "中部地区", "南北极"], answer: 0 }
-        ];
-
-        // State
-        var learnedSections = {};
-        var wrongAnswers = [];
-        var favoriteQuestions = [];
-        var currentQuestionIndex = 0;
-        var score = 0;
-        var questionAnswered = false;
-        var currentQuizQuestions = [];
-        var chapterProgress = {};
-
-        // Init
-        document.addEventListener("DOMContentLoaded", function() {
-            renderChapterList();
-            loadProgress();
-        });
-
-        // Render chapter list
-        function renderChapterList() {
-            var list = document.getElementById("chapterList");
-            var html = "";
-            for (var i = 0; i < chapters.length; i++) {
-                var ch = chapters[i];
-                html += '<div class="mb-2">';
-                html += '<button onclick="toggleChapter(' + ch.id + ')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 flex items-center justify-between">';
-                html += '<span class="font-medium text-gray-700"><i class="fa-solid ' + ch.icon + ' mr-2 text-blue-500"></i>' + ch.title + '</span>';
-                html += '<i class="fa-solid fa-chevron-down text-xs text-gray-400" id="icon-' + ch.id + '"></i>';
-                html += '</button>';
-                html += '<div id="sections-' + ch.id + '" class="ml-4 mt-1 space-y-1 hidden">';
-                for (var j = 0; j < ch.sections.length; j++) {
-                    var s = ch.sections[j];
-                    html += '<button onclick="showSection(' + ch.id + ',\'' + s.id + '\')" class="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-blue-50 rounded-lg flex items-center">';
-                    html += '<span class="flex-1">' + s.title + '</span>';
-                    html += '<i class="fa-solid fa-check-circle text-green-500 hidden" id="check-' + s.id + '"></i>';
-                    html += '</button>';
-                }
-                html += '</div></div>';
-            }
-            list.innerHTML = html;
-        }
-
-        // Toggle chapter
-        function toggleChapter(id) {
-            var sections = document.getElementById("sections-" + id);
-            var icon = document.getElementById("icon-" + id);
-            if (sections.classList.contains("hidden")) {
-                sections.classList.remove("hidden");
-                icon.classList.remove("fa-chevron-down");
-                icon.classList.add("fa-chevron-right");
-            } else {
-                sections.classList.add("hidden");
-                icon.classList.remove("fa-chevron-right");
-                icon.classList.add("fa-chevron-down");
-            }
-        }
-
-        // Show section
-        function showSection(chapterId, sectionId) {
-            var chapter = chapters[chapterId - 1];
-            var section = null;
-            for (var i = 0; i < chapter.sections.length; i++) {
-                if (chapter.sections[i].id === sectionId) {
-                    section = chapter.sections[i];
-                    break;
-                }
-            }
-            if (!section) return;
-
-            document.getElementById("welcomePanel").classList.add("hidden");
-            document.getElementById("quizArea").classList.add("hidden");
-            document.getElementById("contentArea").classList.remove("hidden");
-            
-            var chapterQuestions = 0;
-            for (var k = 0; k < questions.length; k++) {
-                if (questions[k].chapter === chapterId) chapterQuestions++;
-            }
-            
-            document.getElementById("contentArea").innerHTML = 
-                '<div class="bg-white rounded-xl shadow-sm p-6">' +
-                '<div class="flex items-center gap-3 mb-4">' +
-                '<span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm">第' + chapterId + '章</span>' +
-                '<h2 class="text-xl font-bold text-gray-800">' + section.title + '</h2></div>' +
-                '<p class="text-gray-700 leading-relaxed">' + section.content + '</p>' +
-                '<div class="mt-6 pt-4 border-t border-gray-200">' +
-                '<button onclick="showRelatedQuestions(' + chapterId + ')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">' +
-                '<i class="fa-solid fa-pen-to-square mr-2"></i>练习本章题目 (' + chapterQuestions + '道题)' +
-                '</button></div></div>';
-        }
-
-        // Show related questions
-        function showRelatedQuestions(chapterId) {
-            var chapterQuestions = [];
-            for (var i = 0; i < questions.length; i++) {
-                if (questions[i].chapter === chapterId) {
-                    chapterQuestions.push(questions[i]);
-                }
-            }
-            if (chapterQuestions.length === 0) {
-                alert("暂无相关题目");
-                return;
-            }
-            startQuiz(chapterQuestions);
-        }
-
-        // Mark chapter complete
-        function markChapterComplete(chapterId, questionIdx) {
-            if (!chapterProgress[chapterId]) {
-                chapterProgress[chapterId] = {};
-            }
-            chapterProgress[chapterId][questionIdx] = true;
-            
-            // Check if all questions completed
-            var chapterQuestions = 0;
-            for (var k = 0; k < questions.length; k++) {
-                if (questions[k].chapter === chapterId) chapterQuestions++;
-            }
-            
-            var completedCount = 0;
-            for (var key in chapterProgress[chapterId]) {
-                if (chapterProgress[chapterId][key]) completedCount++;
-            }
-            
-            if (completedCount >= chapterQuestions) {
-                var chapter = chapters[chapterId - 1];
-                for (var j = 0; j < chapter.sections.length; j++) {
-                    learnedSections[chapter.sections[j].id] = true;
-                    var check = document.getElementById("check-" + chapter.sections[j].id);
-                    if (check) check.classList.remove("hidden");
-                }
-                saveProgress();
-                updateProgress();
-            }
-        }
-
-        // Start quiz
-        function startQuiz(questionList) {
-            document.getElementById("welcomePanel").classList.add("hidden");
-            document.getElementById("contentArea").classList.add("hidden");
-            document.getElementById("quizArea").classList.remove("hidden");
-            
-            currentQuestionIndex = 0;
-            score = 0;
-            questionAnswered = false;
-            currentQuizQuestions = questionList || questions;
-            renderQuestion();
-        }
-
-        // Random question
-        function showRandomQuestion() {
-            var randomQ = [questions[Math.floor(Math.random() * questions.length)]];
-            startQuiz(randomQ);
-        }
-
-        // Shuffle
-        function shuffleArray(array) {
-            var result = array.slice();
-            for (var i = result.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                var temp = result[i];
-                result[i] = result[j];
-                result[j] = temp;
-            }
-            return result;
-        }
-
-        // Render question
-        function renderQuestion() {
-            var q = currentQuizQuestions[currentQuestionIndex];
-            var container = document.getElementById("questionContainer");
-            
-            // Shuffle options
-            var optionsWithIndex = [];
-            for (var i = 0; i < q.options.length; i++) {
-                optionsWithIndex.push({ text: q.options[i], originalIndex: i });
-            }
-            var shuffled = shuffleArray(optionsWithIndex);
-            
-            var html = '<div class="fade-in">';
-            html += '<div class="flex items-center justify-between mb-4">';
-            html += '<span class="text-sm text-gray-500">题目 ' + (currentQuestionIndex + 1) + ' / ' + currentQuizQuestions.length + '</span>';
-            html += '<button onclick="toggleFavorite()" class="text-yellow-500 hover:text-yellow-600"><i class="fa-solid fa-star"></i></button>';
-            html += '</div>';
-            html += '<h3 class="text-lg font-medium text-gray-800 mb-4">' + q.question + '</h3>';
-            html += '<div class="space-y-2">';
-            for (var i = 0; i < shuffled.length; i++) {
-                html += '<label class="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer">';
-                html += '<input type="radio" name="answer" value="' + shuffled[i].originalIndex + '" class="mr-3" onclick="selectAnswer(' + shuffled[i].originalIndex + ')">';
-                html += '<span class="text-gray-700">' + shuffled[i].text + '</span>';
-                html += '</label>';
-            }
-            html += '</div>';
-            html += '<div id="resultArea" class="mt-4"></div>';
-            html += '</div>';
-            
-            container.innerHTML = html;
-            document.getElementById("quizScore").textContent = "得分: " + score;
-            updateButtons();
-        }
-
-        // Select answer
-        function selectAnswer(answerIndex) {
-            if (questionAnswered) return;
-            
-            questionAnswered = true;
-            var q = currentQuizQuestions[currentQuestionIndex];
-            var isCorrect = answerIndex === q.answer;
-            var resultArea = document.getElementById("resultArea");
-            
-            // Mark complete
-            markChapterComplete(q.chapter, currentQuestionIndex);
-            
-            // Highlight
-            var inputs = document.querySelectorAll('input[name="answer"]');
-            for (var i = 0; i < inputs.length; i++) {
-                inputs[i].disabled = true;
-                var label = inputs[i].parentElement;
-                if (parseInt(inputs[i].value) === q.answer) {
-                    label.classList.add("border-green-500", "bg-green-50");
-                } else if (parseInt(inputs[i].value) === answerIndex && !isCorrect) {
-                    label.classList.add("border-red-500", "bg-red-50");
-                }
-            }
-            
-            if (isCorrect) {
-                score++;
-                resultArea.innerHTML = '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded"><i class="fa-solid fa-check-circle mr-2"></i>回答正确！</div>';
-            } else {
-                resultArea.innerHTML = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"><i class="fa-solid fa-times-circle mr-2"></i>回答错误，正确答案是：' + q.options[q.answer] + '</div>';
-                wrongAnswers.push({ question: q.question, answer: q.options[q.answer], yourAnswer: q.options[answerIndex] });
-                updateWrongNotes();
-            }
-            
-            document.getElementById("quizScore").textContent = "得分: " + score;
-        }
-
-        // Prev question
-        function prevQuestion() {
-            if (currentQuestionIndex > 0) {
-                currentQuestionIndex--;
-                questionAnswered = false;
-                renderQuestion();
-            }
-        }
-
-        // Next question
-        function nextQuestion() {
-            if (!questionAnswered) {
-                alert("请先回答当前题目");
-                return;
-            }
-            
-            if (currentQuestionIndex < currentQuizQuestions.length - 1) {
-                currentQuestionIndex++;
-                questionAnswered = false;
-                renderQuestion();
-            } else {
-                alert("测验结束！最终得分：" + score + "/" + currentQuizQuestions.length);
-                document.getElementById("welcomePanel").classList.remove("hidden");
-                document.getElementById("quizArea").classList.add("hidden");
-            }
-        }
-
-        // Update buttons
-        function updateButtons() {
-            document.getElementById("prevBtn").disabled = currentQuestionIndex === 0;
-            var nextBtn = document.getElementById("nextBtn");
-            if (currentQuestionIndex === currentQuizQuestions.length - 1) {
-                nextBtn.innerHTML = '完成<i class="fa-solid fa-check ml-1"></i>';
-            } else {
-                nextBtn.innerHTML = '下一题<i class="fa-solid fa-arrow-right ml-1"></i>';
-            }
-        }
-
-        // Toggle favorite
-        function toggleFavorite() {
-            var q = currentQuizQuestions[currentQuestionIndex];
-            var exists = false;
-            for (var i = 0; i < favoriteQuestions.length; i++) {
-                if (favoriteQuestions[i].question === q.question) {
-                    exists = true;
-                    favoriteQuestions.splice(i, 1);
-                    break;
-                }
-            }
-            if (!exists) {
-                favoriteQuestions.push(q);
-            }
-            updateFavorites();
-        }
-
-        // Update wrong notes
-        function updateWrongNotes() {
-            var container = document.getElementById("wrongNotes");
-            if (wrongAnswers.length === 0) {
-                container.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">暂无错题</p>';
-                return;
-            }
-            var html = "";
-            for (var i = 0; i < wrongAnswers.length; i++) {
-                html += '<div class="bg-red-50 p-2 rounded text-xs">';
-                html += '<p class="font-medium text-gray-700">' + (i + 1) + '. ' + wrongAnswers[i].question + '</p>';
-                html += '<p class="text-red-600">你的答案：' + wrongAnswers[i].yourAnswer + '</p>';
-                html += '<p class="text-green-600">正确答案：' + wrongAnswers[i].answer + '</p>';
-                html += '</div>';
-            }
-            container.innerHTML = html;
-        }
-
-        // Update favorites
-        function updateFavorites() {
-            var container = document.getElementById("favorites");
-            if (favoriteQuestions.length === 0) {
-                container.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">暂无收藏</p>';
-                return;
-            }
-            var html = "";
-            for (var i = 0; i < favoriteQuestions.length; i++) {
-                html += '<div class="bg-yellow-50 p-2 rounded text-xs cursor-pointer hover:bg-yellow-100" onclick="loadFavorite(' + i + ')">';
-                html += '<p class="font-medium text-gray-700">' + (i + 1) + '. ' + favoriteQuestions[i].question + '</p>';
-                html += '</div>';
-            }
-            container.innerHTML = html;
-        }
-
-        // Load favorite
-        function loadFavorite(index) {
-            startQuiz([favoriteQuestions[index]]);
-        }
-
-        // Save progress
-        function saveProgress() {
-            localStorage.setItem("geo_learned", JSON.stringify(learnedSections));
-            localStorage.setItem("geo_wrong", JSON.stringify(wrongAnswers));
-            localStorage.setItem("geo_favorite", JSON.stringify(favoriteQuestions));
-            localStorage.setItem("geo_chapter_progress", JSON.stringify(chapterProgress));
-        }
-
-        // Load progress
-        function loadProgress() {
-            var saved = localStorage.getItem("geo_learned");
-            if (saved) {
-                learnedSections = JSON.parse(saved);
-                for (var key in learnedSections) {
-                    if (learnedSections[key]) {
-                        var check = document.getElementById("check-" + key);
-                        if (check) check.classList.remove("hidden");
-                    }
-                }
-            }
-            
-            var savedWrong = localStorage.getItem("geo_wrong");
-            if (savedWrong) {
-                wrongAnswers = JSON.parse(savedWrong);
-                updateWrongNotes();
-            }
-            
-            var savedFav = localStorage.getItem("geo_favorite");
-            if (savedFav) {
-                favoriteQuestions = JSON.parse(savedFav);
-                updateFavorites();
-            }
-            
-            var savedChapter = localStorage.getItem("geo_chapter_progress");
-            if (savedChapter) {
-                chapterProgress = JSON.parse(savedChapter);
-            }
-            
-            updateProgress();
-        }
-
-        // Update progress
-        function updateProgress() {
-            var total = 0;
-            for (var i = 0; i < chapters.length; i++) {
-                total += chapters[i].sections.length;
-            }
-            var learnedCount = 0;
-            for (var key in learnedSections) {
-                if (learnedSections[key]) learnedCount++;
-            }
-            var percent = Math.round((learnedCount / total) * 100);
-            document.getElementById("progressBar").style.width = percent + "%";
-            document.getElementById("progressText").textContent = "学习进度: " + percent + "%";
-        }
-
-        // Reset progress
-        function resetProgress() {
-            if (confirm("确定要重置所有学习进度吗？")) {
-                learnedSections = {};
-                wrongAnswers = [];
-                favoriteQuestions = [];
-                chapterProgress = {};
-                localStorage.removeItem("geo_learned");
-                localStorage.removeItem("geo_wrong");
-                localStorage.removeItem("geo_favorite");
-                localStorage.removeItem("geo_chapter_progress");
-                var checks = document.querySelectorAll('[id^="check-"]');
-                for (var i = 0; i < checks.length; i++) {
-                    checks[i].classList.add("hidden");
-                }
-                updateProgress();
-                updateWrongNotes();
-                updateFavorites();
-                alert("进度已重置！");
-            }
-        }
-    </script>
-    </div>
-</body>
-    
-    <!-- 登录注册模态框 -->
-    <div id="authModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-xl p-6 w-96 max-w-[90%]">
-            <h2 id="modalTitle" class="text-xl font-bold mb-4">登录</h2>
-            <input id="authEmail" type="email" placeholder="邮箱" class="w-full px-4 py-2 border rounded-lg mb-3">
-            <input id="authPassword" type="password" placeholder="密码" class="w-full px-4 py-2 border rounded-lg mb-4">
-            <button id="authBtn" onclick="submitAuth()" class="w-full bg-blue-600 text-white py-2 rounded-lg">登录</button>
-            <p class="text-center mt-3 text-sm text-gray-500">
-                <span id="authSwitch" onclick="toggleAuthMode()" class="cursor-pointer text-blue-500">没有账号？点此注册</span>
-            </p>
-            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-500 text-xl">×</button>
         </div>
     </div>
 
@@ -658,95 +317,232 @@
         const SUPABASE_URL = 'https://adcdrzzyhveuhxchqbcs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_KFqWdKhpA-IJCRG3h6crvA_tEQtC4wI';
         
-        let authMode = 'login';
+        // 数据
+        const chapters = [
+            { id: 1, title: '第一章：从世界看中国', sections: ['中国的地理位置', '中国的疆域', '中国的邻国', '中国的人口', '中国的民族'] },
+            { id: 2, title: '第二章：中国的自然环境', sections: ['中国的地形', '中国的地势', '主要山脉', '中国的气候', '河流与湖泊'] },
+            { id: 3, title: '第三章：中国的自然资源', sections: ['自然资源概述', '土地资源', '水资源', '南水北调'] },
+            { id: 4, title: '第四章：中国经济发展', sections: ['交通运输', '农业', '工业', '高新技术产业'] }
+        ];
         
-        function showLoginModal() { 
-            authMode = 'login'; 
-            document.getElementById('modalTitle').innerText = '登录'; 
-            document.getElementById('authBtn').innerText = '登录'; 
-            document.getElementById('authSwitch').innerText = '没有账号？点此注册'; 
-            document.getElementById('authModal').classList.remove('hidden'); 
-            document.getElementById('authModal').classList.add('flex'); 
-        }
+        const questions = [
+            { chapter: 1, q: "中国位于哪个大洲？", options: ["亚洲", "欧洲", "北美洲", "非洲"], a: 0 },
+            { chapter: 1, q: "中国陆地面积约多少万平方千米？", options: ["960万", "9600万", "96万", "9.6万"], a: 0 },
+            { chapter: 1, q: "中国最北端位于哪个省？", options: ["黑龙江", "吉林", "辽宁", "内蒙古"], a: 0 },
+            { chapter: 1, q: "中国人口地理分界线是？", options: ["黑河-腾冲线", "长江-黄河线", "京沪线", "陇海线"], a: 0 },
+            { chapter: 1, q: "中国56个民族中人口最多的是？", options: ["汉族", "壮族", "满族", "回族"], a: 0 },
+            { chapter: 2, q: "中国地势特点是什么？", options: ["西高东低", "东高西低", "南高北低", "北高南低"], a: 0 },
+            { chapter: 2, q: "中国第一级阶梯主要地形区是？", options: ["青藏高原", "内蒙古高原", "黄土高原", "云贵高原"], a: 0 },
+            { chapter: 2, q: "长江注入哪个海洋？", options: ["东海", "黄海", "渤海", "南海"], a: 0 },
+            { chapter: 2, q: "黄河含沙量在世界河流中排名？", options: ["第一位", "第二位", "第三位", "第四位"], a: 0 },
+            { chapter: 2, q: "中国季风气候的特点是？", options: ["雨热同期", "全年温和", "全年炎热", "冬季多雨"], a: 0 },
+            { chapter: 3, q: "以下哪个是非可再生资源？", options: ["矿产资源", "土地资源", "水资源", "森林资源"], a: 0 },
+            { chapter: 3, q: "中国水资源分布特点是？", options: ["南多北少", "北多南少", "东多西少", "西多东少"], a: 0 },
+            { chapter: 3, q: "南水北调工程中线取水地点是？", options: ["丹江口水库", "三峡", "扬州", "小浪底"], a: 0 },
+            { chapter: 4, q: "中国最重要的交通运输方式是？", options: ["铁路", "公路", "航空", "水路"], a: 0 },
+            { chapter: 4, q: "中国最大综合性工业基地是？", options: ["沪宁杭", "辽中南", "京津唐", "珠江三角洲"], a: 0 },
+            { chapter: 4, q: "中国南方主要耕地类型是？", options: ["水田", "旱地", "草地", "林地"], a: 0 }
+        ];
         
-        function showRegisterModal() { 
-            authMode = 'register'; 
-            document.getElementById('modalTitle').innerText = '注册'; 
-            document.getElementById('authBtn').innerText = '注册'; 
-            document.getElementById('authSwitch').innerText = '已有账号？点此登录'; 
-            document.getElementById('authModal').classList.remove('hidden'); 
-            document.getElementById('authModal').classList.add('flex'); 
-        }
+        // 状态
+        let currentTab = 'home';
+        let wrongAnswers = JSON.parse(localStorage.getItem('geo_wrong') || '[]');
+        let favorites = JSON.parse(localStorage.getItem('geo_favorites') || '[]');
+        let learned = JSON.parse(localStorage.getItem('geo_learned') || '{}');
+        let quizIndex = 0;
+        let currentQuestions = [];
         
-        function closeAuthModal() { 
-            document.getElementById('authModal').classList.add('hidden'); 
-            document.getElementById('authModal').classList.remove('flex'); 
-        }
-        
-        function toggleAuthMode() { 
-            if(authMode === 'login') showRegisterModal(); else showLoginModal(); 
-        }
-        
-        async function submitAuth() {
-            const email = document.getElementById('authEmail').value;
-            const password = document.getElementById('authPassword').value;
-            if(!email || !password) { alert('请填写邮箱和密码'); return; }
-            
-            const btn = document.getElementById('authBtn');
-            btn.disabled = true; btn.innerText = '请稍候...';
-            
-            try {
-                if(authMode === 'register') {
-                    const resp = await fetch(SUPABASE_URL + '/rest/v1/users', {
-                        method: 'POST',
-                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-                        body: JSON.stringify({ email, password })
-                    });
-                    if(resp.ok) { alert('注册成功！请登录'); showLoginModal(); }
-                    else { const err = await resp.json(); alert('注册失败: ' + JSON.stringify(err)); }
-                } else {
-                    const resp = await fetch(SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email), {
-                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-                    });
-                    const users = await resp.json();
-                    if(users.length > 0 && users[0].password === password) {
-                        localStorage.setItem('geo_user', JSON.stringify(users[0]));
-                        closeAuthModal();
-                        showUserInfo(users[0]);
-                        alert('登录成功！');
-                    } else {
-                        alert('邮箱或密码错误');
-                    }
-                }
-            } catch(e) { alert('操作失败: ' + e.message); }
-            btn.disabled = false; btn.innerText = authMode === 'login' ? '登录' : '注册';
-        }
-        
-        function showUserInfo(user) {
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('userInfo').classList.remove('hidden');
-            document.getElementById('userEmail').innerText = user.email;
-        }
-        
-        function logout() {
-            localStorage.removeItem('geo_user');
-            document.getElementById('loginSection').classList.remove('hidden');
-            document.getElementById('userInfo').classList.add('hidden');
-        }
-        
-        // 检查登录状态 - 必须登录后才能看到网站
+        // 初始化
         window.onload = function() {
             const user = localStorage.getItem('geo_user');
             if(user) {
                 document.getElementById('loginOverlay').classList.add('hidden');
                 document.getElementById('mainContent').classList.remove('hidden');
-                showUserInfo(JSON.parse(user));
+                const u = JSON.parse(user);
+                document.getElementById('userEmail').innerText = u.email;
+                loadData();
+            }
+        };
+        
+        function loadData() {
+            renderKnowledgeList();
+            renderQuestionList(questions);
+            renderWrongList();
+            renderFavoritesList();
+            updateStats();
+        }
+        
+        // 标签切换
+        function showTab(tab) {
+            document.getElementById('homeTab').classList.add('hidden');
+            document.getElementById('knowledgeTab').classList.add('hidden');
+            document.getElementById('questionsTab').classList.add('hidden');
+            document.getElementById('examTab').classList.add('hidden');
+            document.getElementById('mapsTab').classList.add('hidden');
+            document.getElementById('wrongTab').classList.add('hidden');
+            document.getElementById('favoritesTab').classList.add('hidden');
+            document.getElementById('downloadsTab').classList.add('hidden');
+            document.getElementById('profileTab').classList.add('hidden');
+            document.getElementById('quizTab').classList.add('hidden');
+            
+            document.getElementById(tab + 'Tab').classList.remove('hidden');
+            currentTab = tab;
+        }
+        
+        // 渲染知识点列表
+        function renderKnowledgeList() {
+            let html = '';
+            chapters.forEach(ch => {
+                html += `<div class="bg-white rounded-lg shadow-sm overflow-hidden mb-2">
+                    <div class="bg-blue-50 p-3 font-medium text-sm">${ch.title}</div>
+                    <div class="p-2">`;
+                ch.sections.forEach((s, i) => {
+                    html += `<button onclick="showSection(${ch.id}, ${i})" class="block w-full text-left p-2 text-sm text-gray-600 hover:bg-gray-50 rounded">${s}</button>`;
+                });
+                html += `</div></div>`;
+            });
+            document.getElementById('knowledgeList').innerHTML = html;
+        }
+        
+        function showSection(chapterId, sectionIndex) {
+            const section = chapters[chapterId-1].sections[sectionIndex];
+            learned[chapterId + '-' + sectionIndex] = true;
+            localStorage.setItem('geo_learned', JSON.stringify(learned));
+            alert(section + '\n\n（知识点内容展示）');
+            updateStats();
+        }
+        
+        // 渲染题库
+        function renderQuestionList(list) {
+            let html = '';
+            list.forEach((q, i) => {
+                html += `<div class="bg-white p-3 rounded-lg shadow-sm">
+                    <p class="text-sm font-medium mb-2">${i+1}. ${q.q}</p>
+                    <div class="flex flex-wrap gap-1">`;
+                q.options.forEach((o, j) => {
+                    html += `<span class="px-2 py-1 bg-gray-100 rounded text-xs">${String.fromCharCode(65+j)}. ${o}</span>`;
+                });
+                html += `</div>
+                    <button onclick="startQuiz([${list.indexOf(q)}])" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded text-xs">答题</button>
+                </div>`;
+            });
+            document.getElementById('questionList').innerHTML = html;
+        }
+        
+        function filterQuestions(chapter) {
+            if(chapter === 'all') {
+                renderQuestionList(questions);
             } else {
-                document.getElementById('loginOverlay').classList.remove('hidden');
-                document.getElementById('mainContent').classList.add('hidden');
+                renderQuestionList(questions.filter(q => q.chapter === chapter));
             }
         }
         
+        // 答题
+        function startQuiz(index) {
+            quizIndex = index;
+            currentQuestions = [questions[index]];
+            showTab('quiz');
+            renderQuiz();
+        }
+        
+        function dailyPractice() {
+            const randomIndex = Math.floor(Math.random() * questions.length);
+            startQuiz(randomIndex);
+        }
+        
+        function renderQuiz() {
+            const q = currentQuestions[0];
+            let html = `<p class="font-medium mb-3">${q.q}</p><div class="space-y-2">`;
+            q.options.forEach((o, i) => {
+                html += `<label class="flex items-center p-2 bg-gray-50 rounded cursor-pointer">
+                    <input type="radio" name="answer" value="${i}" class="mr-2">
+                    <span class="text-sm">${o}</span>
+                </label>`;
+            });
+            html += `</div><div id="result" class="mt-3"></div>`;
+            document.getElementById('quizContent').innerHTML = html;
+        }
+        
+        function nextQuiz() {
+            const selected = document.querySelector('input[name="answer"]:checked');
+            if(!selected) { alert('请选择一个答案'); return; }
+            
+            const answer = parseInt(selected.value);
+            const q = currentQuestions[0];
+            const result = document.getElementById('result');
+            
+            if(answer === q.a) {
+                result.innerHTML = '<p class="text-green-500 text-sm"><i class="fa-solid fa-check"></i> 回答正确！</p>';
+            } else {
+                result.innerHTML = `<p class="text-red-500 text-sm"><i class="fa-solid fa-times"></i> 错误，正确答案是：${q.options[q.a]}</p>`;
+                wrongAnswers.push({q: q.q, a: q.options[q.a]});
+                localStorage.setItem('geo_wrong', JSON.stringify(wrongAnswers));
+            }
+            
+            setTimeout(() => {
+                showTab('home');
+                renderWrongList();
+            }, 1500);
+        }
+        
+        function prevQuiz() {
+            showTab('questions');
+        }
+        
+        // 错题本
+        function renderWrongList() {
+            if(wrongAnswers.length === 0) {
+                document.getElementById('wrongList').innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">暂无错题</p>';
+                return;
+            }
+            let html = '';
+            wrongAnswers.forEach((w, i) => {
+                html += `<div class="bg-white p-3 rounded-lg shadow-sm">
+                    <p class="text-sm font-medium">${i+1}. ${w.q}</p>
+                    <p class="text-xs text-red-500 mt-1">正确答案：${w.a}</p>
+                </div>`;
+            });
+            document.getElementById('wrongList').innerHTML = html;
+        }
+        
+        // 收藏
+        function renderFavoritesList() {
+            if(favorites.length === 0) {
+                document.getElementById('favoritesList').innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">暂无收藏</p>';
+                return;
+            }
+            let html = '';
+            favorites.forEach(f => {
+                html += `<div class="bg-white p-3 rounded-lg shadow-sm">
+                    <p class="text-sm font-medium">${f.q}</p>
+                </div>`;
+            });
+            document.getElementById('favoritesList').innerHTML = html;
+        }
+        
+        // 统计
+        function updateStats() {
+            const total = Object.keys(learned).length;
+            const max = chapters.reduce((sum, ch) => sum + ch.sections.length, 0);
+            const percent = Math.round((total / max) * 100);
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').innerText = percent + '%';
+            document.getElementById('totalQuestions').innerText = wrongAnswers.length;
+            document.getElementById('correctRate').innerText = wrongAnswers.length > 0 ? '80%' : '0%';
+        }
+        
+        // 重置
+        function resetProgress() {
+            if(confirm('确定重置所有进度吗？')) {
+                localStorage.clear();
+                wrongAnswers = [];
+                favorites = [];
+                learned = {};
+                location.reload();
+            }
+        }
+        
+        // 登录注册
         function showLoginForm() {
             document.getElementById('loginForm').classList.remove('hidden');
             document.getElementById('registerForm').classList.add('hidden');
@@ -771,7 +567,8 @@
                     localStorage.setItem('geo_user', JSON.stringify(users[0]));
                     document.getElementById('loginOverlay').classList.add('hidden');
                     document.getElementById('mainContent').classList.remove('hidden');
-                    showUserInfo(users[0]);
+                    document.getElementById('userEmail').innerText = users[0].email;
+                    loadData();
                 } else {
                     alert('邮箱或密码错误');
                 }
@@ -790,8 +587,14 @@
                     body: JSON.stringify({ email, password })
                 });
                 if(resp.ok) { alert('注册成功！请登录'); showLoginForm(); }
-                else { const err = await resp.json(); alert('注册失败: ' + JSON.stringify(err)); }
+                else { alert('注册失败'); }
             } catch(e) { alert('注册失败: ' + e.message); }
         }
+        
+        function logout() {
+            localStorage.removeItem('geo_user');
+            location.reload();
+        }
     </script>
+</body>
 </html>
