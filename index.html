@@ -140,6 +140,13 @@
         <!-- 知识点页 -->
         <div id="knowledgeTab" class="hidden p-4">
             <h2 class="font-bold text-lg mb-3">知识点</h2>
+            <div class="mb-3 flex gap-2 overflow-x-auto pb-2">
+                <button onclick="filterKnowledge('all')" class="px-3 py-1 bg-blue-500 text-white rounded-full text-xs whitespace-nowrap">全部</button>
+                <button onclick="filterKnowledge('七年级上册')" class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs whitespace-nowrap">七年级上册</button>
+                <button onclick="filterKnowledge('七年级下册')" class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs whitespace-nowrap">七年级下册</button>
+                <button onclick="filterKnowledge('八年级上册')" class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs whitespace-nowrap">八年级上册</button>
+                <button onclick="filterKnowledge('八年级下册')" class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs whitespace-nowrap">八年级下册</button>
+            </div>
             <div class="space-y-2" id="knowledgeList"></div>
         </div>
         
@@ -307,6 +314,18 @@
                 </div>
             </div>
         </div>
+        
+        <!-- 知识点详情页 -->
+        <div id="knowledgeDetailTab" class="hidden p-4">
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <button onclick="showTab('knowledge')" class="text-gray-500"><i class="fa-solid fa-arrow-left"></i> 返回</button>
+                    <button onclick="toggleFav()" class="text-yellow-500"><i class="fa-solid fa-star"></i></button>
+                </div>
+                <h2 id="detailTitle" class="font-bold text-lg mb-3"></h2>
+                <p id="detailContent" class="text-sm text-gray-600 leading-relaxed"></p>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -316,10 +335,34 @@
         
         // 数据
         const chapters = [
-            { id: 1, title: '第一章：从世界看中国', sections: ['中国的地理位置', '中国的疆域', '中国的邻国', '中国的人口', '中国的民族'] },
-            { id: 2, title: '第二章：中国的自然环境', sections: ['中国的地形', '中国的地势', '主要山脉', '中国的气候', '河流与湖泊'] },
-            { id: 3, title: '第三章：中国的自然资源', sections: ['自然资源概述', '土地资源', '水资源', '南水北调'] },
-            { id: 4, title: '第四章：中国经济发展', sections: ['交通运输', '农业', '工业', '高新技术产业'] }
+            // 七年级上册
+            { id: 1, grade: '七年级上册', title: '第一章：地球和地图', sections: [
+                { id: '1-1', title: '地球的形状和大小', content: '地球是一个两极稍扁、赤道略鼓的不规则球体。平均半径6371千米，表面积5.1亿平方千米。' },
+                { id: '1-2', title: '地球的运动', content: '地球自转：方向自西向东，周期24小时，产生昼夜交替。地球公转：方向自西向东，周期一年，产生四季变化。' },
+                { id: '1-3', title: '地图的阅读', content: '地图三要素：方向、比例尺、图例。指向标指向北方。' },
+                { id: '1-4', title: '地形图的判读', content: '等高线地形图：山峰、鞍部、山谷、山脊、陡崖。分层设色地形图：绿色平原，黄色丘陵，棕色山地，白色冰川。' }
+            ]},
+            // 七年级下册
+            { id: 2, grade: '七年级下册', title: '第二章：我们邻近的国家和地区', sections: [
+                { id: '2-1', title: '日本', content: '日本由北海道、本州、四国、九州四个大岛组成。地形以山地为主，地震频发。工业发达，但资源缺乏。' },
+                { id: '2-2', title: '东南亚', content: '东南亚包括中南半岛和马来群岛。气候以热带雨林气候和热带季风气候为主。盛产橡胶、油棕、椰子等。' },
+                { id: '2-3', title: '印度', content: '印度是世界第二人口大国。气候以热带季风气候为主，全年高温，分旱雨两季。农业发达，水稻、小麦产量大。' },
+                { id: '2-4', title: '俄罗斯', content: '俄罗斯是世界上面积最大的国家。气候寒冷，资源丰富。工业基础雄厚，重工业发达。' }
+            ]},
+            // 八年级上册
+            { id: 3, grade: '八年级上册', title: '第三章：中国的自然资源', sections: [
+                { id: '3-1', title: '自然资源的基本特征', content: '自然资源分为可再生资源和非可再生资源。土地、水、森林是可再生资源，矿产资源是非可再生资源。' },
+                { id: '3-2', title: '土地资源', content: '中国土地利用类型：耕地、林地、草地、建筑用地。耕地主要分布在东部季风区，林地主要分布在东北、西南。' },
+                { id: '3-3', title: '水资源', content: '中国水资源南多北少，东多西少。年降水量从东南向西北递减。解决措施：修建水库、跨流域调水、节约用水。' },
+                { id: '3-4', title: '交通运输', content: '交通运输方式：铁路、公路、水路、航空、管道。铁路是中国最重要的交通运输方式。' }
+            ]},
+            // 八年级下册
+            { id: 4, grade: '八年级下册', title: '第四章：中国的经济发展', sections: [
+                { id: '4-1', title: '交通运输', content: '主要铁路干线：京哈线、京沪线、京九线、京广线、陇海线、沪昆线等。' },
+                { id: '4-2', title: '农业', content: '中国农业分布：东部以种植业为主，西部以畜牧业为主。南方水田，北方旱地。主要粮食作物：水稻、小麦。' },
+                { id: '4-3', title: '工业', content: '中国四大工业基地：辽中南（重工业）、京津唐（北方综合性）、沪宁杭（全国最大）、珠江三角洲（外向型）。' },
+                { id: '4-4', title: '高新技术产业', content: '高新技术产业分布：东部沿海地区为主，大中城市周围。代表产业：信息技术、生物技术、新能源、新材料。' }
+            ]}
         ];
         
         const questions = [
@@ -522,32 +565,46 @@
             document.getElementById('downloadsTab').classList.add('hidden');
             document.getElementById('profileTab').classList.add('hidden');
             document.getElementById('quizTab').classList.add('hidden');
+            document.getElementById('knowledgeDetailTab').classList.add('hidden');
             
             document.getElementById(tab + 'Tab').classList.remove('hidden');
             currentTab = tab;
         }
         
         // 渲染知识点列表
-        function renderKnowledgeList() {
+        function renderKnowledgeList(list) {
             let html = '';
-            chapters.forEach(ch => {
+            list.forEach(ch => {
                 html += `<div class="bg-white rounded-lg shadow-sm overflow-hidden mb-2">
-                    <div class="bg-blue-50 p-3 font-medium text-sm">${ch.title}</div>
+                    <div class="bg-blue-50 p-3 font-medium text-sm">${ch.grade} - ${ch.title}</div>
                     <div class="p-2">`;
                 ch.sections.forEach((s, i) => {
-                    html += `<button onclick="showSection(${ch.id}, ${i})" class="block w-full text-left p-2 text-sm text-gray-600 hover:bg-gray-50 rounded">${s}</button>`;
+                    html += `<button onclick="showSection('${s.id}', '${s.title}', '${s.content}')" class="block w-full text-left p-2 text-sm text-gray-600 hover:bg-gray-50 rounded">${s.title}</button>`;
                 });
                 html += `</div></div>`;
             });
             document.getElementById('knowledgeList').innerHTML = html;
         }
         
-        function showSection(chapterId, sectionIndex) {
-            const section = chapters[chapterId-1].sections[sectionIndex];
-            learned[chapterId + '-' + sectionIndex] = true;
+        function filterKnowledge(grade) {
+            if(grade === 'all') {
+                renderKnowledgeList(chapters);
+            } else {
+                renderKnowledgeList(chapters.filter(ch => ch.grade === grade));
+            }
+        }
+        
+        function showSection(id, title, content) {
+            learned[id] = true;
             localStorage.setItem('geo_learned', JSON.stringify(learned));
-            alert(section + '\n\n（知识点内容展示）');
+            document.getElementById('detailTitle').innerText = title;
+            document.getElementById('detailContent').innerText = content;
+            showTab('knowledgeDetail');
             updateStats();
+        }
+        
+        function toggleFav() {
+            alert('已收藏');
         }
         
         // 渲染题库
