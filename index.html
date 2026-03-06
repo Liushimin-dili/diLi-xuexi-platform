@@ -56,7 +56,7 @@
         <div id="loginForm">
             <input id="loginEmail" type="email" placeholder="请输入邮箱">
             <input id="loginPassword" type="password" placeholder="请输入密码">
-            <button class="btn-login" id="loginBtn" onclick="alert('测试点击')">登 录</button>
+            <button class="btn-login" id="loginBtn">登 录</button>
             <button class="btn-ghost" id="showRegisterBtn">没有账号？点此注册</button>
         </div>
 
@@ -110,24 +110,31 @@
 
         // 3. 登录逻辑 (使用官方 Auth 接口)
         document.getElementById('loginBtn').onclick = async function() {
+            alert('点击了登录按钮');
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
+            alert('邮箱: ' + email);
 
             if(!email || !password) return showMsg('请填写邮箱和密码', 'error');
 
             showMsg('登录中...', '');
 
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password,
-            });
+            try {
+                alert('开始请求Supabase');
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password,
+                });
+                alert('返回结果: ' + JSON.stringify({error: error?.message}));
 
-            if (error) {
-                showMsg('邮箱或密码错误', 'error');
-            } else {
-                showMsg('登录成功！即将跳转...', 'success');
-                // 登录成功后跳转到主页
-                setTimeout(() => { window.location.href = 'main.html'; }, 1000);
+                if (error) {
+                    showMsg('邮箱或密码错误', 'error');
+                } else {
+                    showMsg('登录成功！即将跳转...', 'success');
+                    setTimeout(() => { window.location.href = 'main.html'; }, 1000);
+                }
+            } catch(e) {
+                alert('异常: ' + e.message);
             }
         };
 
