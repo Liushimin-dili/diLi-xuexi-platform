@@ -4,32 +4,114 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>初中地理学习平台</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .logo {
+            font-size: 48px;
+            color: #3b82f6;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        h1 {
+            font-size: 22px;
+            text-align: center;
+            margin-bottom: 5px;
+            color: #1f2937;
+        }
+        .subtitle {
+            color: #6b7280;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 12px;
+            outline: none;
+        }
+        input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .btn-login {
+            background: #3b82f6;
+            color: white;
+        }
+        .btn-login:hover { background: #2563eb; }
+        .btn-register {
+            background: #10b981;
+            color: white;
+        }
+        .btn-register:hover { background: #059669; }
+        .btn-ghost {
+            background: transparent;
+            color: #6b7280;
+            font-weight: normal;
+        }
+        .btn-ghost:hover { color: #3b82f6; }
+        .msg {
+            text-align: center;
+            font-size: 13px;
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 6px;
+        }
+        .msg-error { background: #fee2e2; color: #dc2626; }
+        .msg-success { background: #d1fae5; color: #059669; }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-blue-500 to-indigo-600 min-h-screen flex items-center justify-center">
-    
-    <div class="bg-white rounded-2xl p-8 w-11/12 max-w-sm shadow-2xl">
-        <i class="fa-solid fa-graduation-cap text-4xl text-blue-600 mb-3 block text-center"></i>
-        <h1 class="text-xl font-bold text-center mb-1">初中地理学习平台</h1>
-        <p class="text-gray-500 text-sm text-center mb-4">请先登录后使用</p>
+<body>
+    <div class="card">
+        <div class="logo">🎓</div>
+        <h1>初中地理学习平台</h1>
+        <p class="subtitle">请先登录后使用</p>
         
         <div id="loginForm">
-            <input id="loginEmail" type="email" placeholder="邮箱" class="w-full px-3 py-2 border rounded-lg mb-2 text-sm">
-            <input id="loginPassword" type="password" placeholder="密码" class="w-full px-3 py-2 border rounded-lg mb-2 text-sm">
-            <button id="loginBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold text-sm">登录</button>
-            <button id="showRegisterBtn" class="w-full mt-2 text-blue-600 text-sm">没有账号？注册</button>
+            <input id="loginEmail" type="email" placeholder="请输入邮箱">
+            <input id="loginPassword" type="password" placeholder="请输入密码">
+            <button class="btn-login" id="loginBtn">登 录</button>
+            <button class="btn-ghost" id="showRegisterBtn">没有账号？点此注册</button>
         </div>
         
-        <div id="registerForm" class="hidden">
-            <input id="regEmail" type="email" placeholder="邮箱" class="w-full px-3 py-2 border rounded-lg mb-2 text-sm">
-            <input id="regPassword" type="password" placeholder="密码" class="w-full px-3 py-2 border rounded-lg mb-2 text-sm">
-            <button id="registerBtn" class="w-full bg-green-600 text-white py-2 rounded-lg font-bold text-sm">注册</button>
-            <button id="showLoginBtn" class="w-full mt-2 text-gray-500 text-sm">已有账号？登录</button>
+        <div id="registerForm" style="display:none;">
+            <input id="regEmail" type="email" placeholder="请输入邮箱">
+            <input id="regPassword" type="password" placeholder="请输入密码">
+            <button class="btn-register" id="registerBtn">注 册</button>
+            <button class="btn-ghost" id="showLoginBtn">已有账号？点此登录</button>
         </div>
         
-        <p id="msg" class="text-center text-sm mt-3"></p>
+        <div id="msg" class="msg" style="display:none;"></div>
     </div>
 
     <script>
@@ -40,11 +122,10 @@
             var email = document.getElementById('loginEmail').value;
             var password = document.getElementById('loginPassword').value;
             if(!email || !password) {
-                document.getElementById('msg').innerText = '请填写邮箱和密码';
-                document.getElementById('msg').className = 'text-center text-sm mt-3 text-red-500';
+                showMsg('请填写邮箱和密码', 'error');
                 return;
             }
-            document.getElementById('msg').innerText = '登录中...';
+            showMsg('登录中...', '');
             
             fetch(SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email), {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
@@ -53,17 +134,16 @@
             .then(function(users) {
                 if(users.length > 0 && users[0].password === password) {
                     localStorage.setItem('geo_user', JSON.stringify(users[0]));
-                    document.getElementById('msg').innerText = '登录成功！';
-                    document.getElementById('msg').className = 'text-center text-sm mt-3 text-green-500';
-                    setTimeout(function() { alert('登录成功！'); }, 500);
+                    showMsg('登录成功！即将进入...', 'success');
+                    setTimeout(function() { 
+                        alert('登录成功！\n\n账号：' + email); 
+                    }, 500);
                 } else {
-                    document.getElementById('msg').innerText = '邮箱或密码错误';
-                    document.getElementById('msg').className = 'text-center text-sm mt-3 text-red-500';
+                    showMsg('邮箱或密码错误', 'error');
                 }
             })
             .catch(function(e) {
-                document.getElementById('msg').innerText = '登录失败: ' + e.message;
-                document.getElementById('msg').className = 'text-center text-sm mt-3 text-red-500';
+                showMsg('登录失败: ' + e.message, 'error');
             });
         };
         
@@ -71,10 +151,10 @@
             var email = document.getElementById('regEmail').value;
             var password = document.getElementById('regPassword').value;
             if(!email || !password) {
-                document.getElementById('msg').innerText = '请填写邮箱和密码';
+                showMsg('请填写邮箱和密码', 'error');
                 return;
             }
-            document.getElementById('msg').innerText = '注册中...';
+            showMsg('注册中...', '');
             
             fetch(SUPABASE_URL + '/rest/v1/users', {
                 method: 'POST',
@@ -83,31 +163,41 @@
             })
             .then(function(resp) {
                 if(resp.ok) {
-                    document.getElementById('msg').innerText = '注册成功！请登录';
-                    document.getElementById('msg').className = 'text-center text-sm mt-3 text-green-500';
-                    document.getElementById('loginForm').classList.remove('hidden');
-                    document.getElementById('registerForm').classList.add('hidden');
+                    showMsg('注册成功！请登录', 'success');
+                    setTimeout(function() {
+                        document.getElementById('loginForm').style.display = 'block';
+                        document.getElementById('registerForm').style.display = 'none';
+                        document.getElementById('msg').style.display = 'none';
+                    }, 1000);
                 } else {
-                    document.getElementById('msg').innerText = '注册失败';
-                    document.getElementById('msg').className = 'text-center text-sm mt-3 text-red-500';
+                    showMsg('注册失败', 'error');
                 }
             })
             .catch(function(e) {
-                document.getElementById('msg').innerText = '注册失败: ' + e.message;
+                showMsg('注册失败: ' + e.message, 'error');
             });
         };
         
         document.getElementById('showRegisterBtn').onclick = function() {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('registerForm').classList.remove('hidden');
-            document.getElementById('msg').innerText = '';
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('msg').style.display = 'none';
         };
         
         document.getElementById('showLoginBtn').onclick = function() {
-            document.getElementById('registerForm').classList.add('hidden');
-            document.getElementById('loginForm').classList.remove('hidden');
-            document.getElementById('msg').innerText = '';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('msg').style.display = 'none';
         };
+        
+        function showMsg(text, type) {
+            var msg = document.getElementById('msg');
+            msg.innerText = text;
+            msg.style.display = 'block';
+            msg.className = 'msg';
+            if(type === 'error') msg.classList.add('msg-error');
+            if(type === 'success') msg.classList.add('msg-success');
+        }
     </script>
 </body>
 </html>
