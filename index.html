@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>初中地理学习平台 - 登录</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -67,6 +68,11 @@
     </div>
 
     <script>
+        // 初始化 Supabase
+        const SUPABASE_URL = 'https://adcdrzzyhveuhxchqbcs.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkY2RyenlodmV1aHhjaHFiY3MiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTYyMjU5NTIwMCwiZXhwIjoxOTM4MTcxMjAwfQ.U4sY1yNw-F0h3K4x3x4x3x4x3x4x3x4x3x4x3x4x4';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         function showMsg(text, type) {
             var msg = document.getElementById('msg');
             msg.innerText = text;
@@ -87,60 +93,63 @@
             document.getElementById('msg').innerText = '';
         }
 
-        function doRegister() {
+        async function doRegister() {
             var email = document.getElementById('regEmail').value;
             var password = document.getElementById('regPassword').value;
 
             if(!email || !password) return showMsg('请填写邮箱和密码', 'error');
             if(password.length < 6) return showMsg('密码至少需要6位', 'error');
 
-            // 保存到本地存储（演示用）
-            var users = JSON.parse(localStorage.getItem('geo_users') || '[]');
-            
-            // 检查是否已存在
-            for(var i=0; i<users.length; i++) {
-                if(users[i].email === email) {
-                    return showMsg('该邮箱已注册', 'error');
-                }
-            }
+            showMsg('注册中...', '');
 
-            users.push({email: email, password: password});
-            localStorage.setItem('geo_users', JSON.stringify(users));
-            
-            showMsg('注册成功！请登录', 'success');
-            setTimeout(showLogin, 1500);
+            try {
+                var result = await supabase.auth.signUp({
+                    email: email,
+                    password: password
+                });
+                
+                if(result.error) {
+                    showMsg('注册失败: ' + result.error.message, 'error');
+                } else {
+                    showMsg('注册成功！请登录', 'success');
+                    setTimeout(showLogin, 1500);
+                }
+            } catch(e) {
+                showMsg('注册失败: ' + e.message, 'error');
+            }
         }
 
-        function doLogin() {
+        async function doLogin() {
             var email = document.getElementById('loginEmail').value;
             var password = document.getElementById('loginPassword').value;
 
             if(!email || !password) return showMsg('请填写邮箱和密码', 'error');
 
-            // 从本地存储验证
-            var users = JSON.parse(localStorage.getItem('geo_users') || '[]');
-            var found = false;
-            
-            for(var i=0; i<users.length; i++) {
-                if(users[i].email === email && users[i].password === password) {
-                    found = true;
-                    break;
-                }
-            }
+            showMsg('登录中...', '');
 
-            if(found) {
-                localStorage.setItem('geo_current_user', email);
-                showMsg('登录成功！即将跳转...', 'success');
-                setTimeout(function() { window.location.href = 'main.html'; }, 1000);
-            } else {
-                showMsg('邮箱或密码错误', 'error');
+            try {
+                var result = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if(result.error) {
+                    showMsg('邮箱或密码错误', 'error');
+                } else {
+                    showMsg('登录成功！即将跳转...', 'success');
+                    setTimeout(function() { window.location.href = 'main.html'; }, 1000);
+                }
+            } catch(e) {
+                showMsg('登录失败: ' + e.message, 'error');
             }
         }
 
         // 检查是否已登录
-        if(localStorage.getItem('geo_current_user')) {
-            window.location.href = 'main.html';
-        }
+        supabase.auth.getSession().then(function(result) {
+            if(result.data.session) {
+                window.location.href = 'main.html';
+            }
+        });
     </script>
 </body>
 </html>
