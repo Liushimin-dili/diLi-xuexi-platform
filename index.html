@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>初中地理学习平台</title>
+    <title>初中地理学习平台 - 登录</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -23,72 +24,27 @@
             max-width: 360px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        .logo {
-            font-size: 48px;
-            color: #3b82f6;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        h1 {
-            font-size: 22px;
-            text-align: center;
-            margin-bottom: 5px;
-            color: #1f2937;
-        }
-        .subtitle {
-            color: #6b7280;
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 25px;
-        }
+        .logo { font-size: 48px; color: #3b82f6; text-align: center; margin-bottom: 10px; }
+        h1 { font-size: 22px; text-align: center; margin-bottom: 5px; color: #1f2937; }
+        .subtitle { color: #6b7280; font-size: 14px; text-align: center; margin-bottom: 25px; }
         input {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #d1d5db;
-            border-radius: 10px;
-            font-size: 14px;
-            margin-bottom: 12px;
-            outline: none;
+            width: 100%; padding: 14px; border: 1px solid #d1d5db; border-radius: 10px;
+            font-size: 14px; margin-bottom: 12px; outline: none; transition: all 0.3s;
         }
-        input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-        }
+        input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
         button {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-bottom: 10px;
+            width: 100%; padding: 14px; border: none; border-radius: 10px;
+            font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 10px; transition: all 0.2s;
         }
-        .btn-login {
-            background: #3b82f6;
-            color: white;
-        }
+        .btn-login { background: #3b82f6; color: white; }
         .btn-login:hover { background: #2563eb; }
-        .btn-register {
-            background: #10b981;
-            color: white;
-        }
+        .btn-register { background: #10b981; color: white; }
         .btn-register:hover { background: #059669; }
-        .btn-ghost {
-            background: transparent;
-            color: #6b7280;
-            font-weight: normal;
-        }
+        .btn-ghost { background: transparent; color: #6b7280; font-weight: normal; }
         .btn-ghost:hover { color: #3b82f6; }
-        .msg {
-            text-align: center;
-            font-size: 13px;
-            margin-top: 10px;
-            padding: 8px;
-            border-radius: 6px;
-        }
-        .msg-error { background: #fee2e2; color: #dc2626; }
-        .msg-success { background: #d1fae5; color: #059669; }
+        .msg { text-align: center; font-size: 13px; margin-top: 10px; padding: 8px; border-radius: 6px; display: none; }
+        .msg-error { background: #fee2e2; color: #dc2626; display: block; }
+        .msg-success { background: #d1fae5; color: #059669; display: block; }
     </style>
 </head>
 <body>
@@ -96,108 +52,103 @@
         <div class="logo">🎓</div>
         <h1>初中地理学习平台</h1>
         <p class="subtitle">请先登录后使用</p>
-        
+
         <div id="loginForm">
             <input id="loginEmail" type="email" placeholder="请输入邮箱">
             <input id="loginPassword" type="password" placeholder="请输入密码">
             <button class="btn-login" id="loginBtn">登 录</button>
             <button class="btn-ghost" id="showRegisterBtn">没有账号？点此注册</button>
         </div>
-        
+
         <div id="registerForm" style="display:none;">
             <input id="regEmail" type="email" placeholder="请输入邮箱">
-            <input id="regPassword" type="password" placeholder="请输入密码">
+            <input id="regPassword" type="password" placeholder="至少6位密码">
             <button class="btn-register" id="registerBtn">注 册</button>
             <button class="btn-ghost" id="showLoginBtn">已有账号？点此登录</button>
         </div>
-        
-        <div id="msg" class="msg" style="display:none;"></div>
+
+        <div id="msg" class="msg"></div>
     </div>
 
     <script>
-        var SUPABASE_URL = 'https://adcdrzzyhveuhxchqbcs.supabase.co';
-        var SUPABASE_KEY = 'sb_publishable_KFqWdKhpA-IJCRG3h6crvA_tEQtC4wI';
-        
-        document.getElementById('loginBtn').onclick = function() {
-            var email = document.getElementById('loginEmail').value;
-            var password = document.getElementById('loginPassword').value;
-            if(!email || !password) {
-                showMsg('请填写邮箱和密码', 'error');
-                return;
-            }
-            showMsg('登录中...', '');
-            
-            fetch(SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email), {
-                headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-            })
-            .then(function(resp) { return resp.json(); })
-            .then(function(users) {
-                if(users.length > 0 && users[0].password === password) {
-                    localStorage.setItem('geo_user', JSON.stringify(users[0]));
-                    showMsg('登录成功！即将进入...', 'success');
-                    setTimeout(function() { 
-                        window.location.href = 'home.html'; 
-                    }, 1000);
-                } else {
-                    showMsg('邮箱或密码错误', 'error');
-                }
-            })
-            .catch(function(e) {
-                showMsg('登录失败: ' + e.message, 'error');
-            });
-        };
-        
-        document.getElementById('registerBtn').onclick = function() {
-            var email = document.getElementById('regEmail').value;
-            var password = document.getElementById('regPassword').value;
-            if(!email || !password) {
-                showMsg('请填写邮箱和密码', 'error');
-                return;
-            }
+        // 1. 初始化 Supabase
+        const SUPABASE_URL = 'https://adcdrzzyhveuhxchqbcs.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_KFqWdKhpA-IJCRG3h6crvA_tEQtC4wI';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // 消息提示函数
+        function showMsg(text, type) {
+            const msg = document.getElementById('msg');
+            msg.innerText = text;
+            msg.className = 'msg';
+            if (type === 'error') msg.classList.add('msg-error');
+            if (type === 'success') msg.classList.add('msg-success');
+        }
+
+        // 2. 注册逻辑 (使用官方 Auth 接口)
+        document.getElementById('registerBtn').onclick = async function() {
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+
+            if(!email || !password) return showMsg('请填写邮箱和密码', 'error');
+            if(password.length < 6) return showMsg('密码至少需要6位', 'error');
+
             showMsg('注册中...', '');
-            
-            fetch(SUPABASE_URL + '/rest/v1/users', {
-                method: 'POST',
-                headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-                body: JSON.stringify({ email: email, password: password })
-            })
-            .then(function(resp) {
-                if(resp.ok) {
-                    showMsg('注册成功！请登录', 'success');
-                    setTimeout(function() {
-                        document.getElementById('loginForm').style.display = 'block';
-                        document.getElementById('registerForm').style.display = 'none';
-                        document.getElementById('msg').style.display = 'none';
-                    }, 1000);
-                } else {
-                    showMsg('注册失败', 'error');
-                }
-            })
-            .catch(function(e) {
-                showMsg('注册失败: ' + e.message, 'error');
+
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password,
             });
+
+            if (error) {
+                showMsg('注册失败: ' + error.message, 'error');
+            } else {
+                showMsg('注册成功！请登录', 'success');
+                setTimeout(() => document.getElementById('showLoginBtn').click(), 1500);
+            }
         };
-        
-        document.getElementById('showRegisterBtn').onclick = function() {
+
+        // 3. 登录逻辑 (使用官方 Auth 接口)
+        document.getElementById('loginBtn').onclick = async function() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if(!email || !password) return showMsg('请填写邮箱和密码', 'error');
+
+            showMsg('登录中...', '');
+
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                showMsg('邮箱或密码错误', 'error');
+            } else {
+                showMsg('登录成功！即将跳转...', 'success');
+                // 登录成功后跳转到主页
+                setTimeout(() => { window.location.href = 'main.html'; }, 1000);
+            }
+        };
+
+        // UI 切换逻辑
+        document.getElementById('showRegisterBtn').onclick = () => {
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('registerForm').style.display = 'block';
             document.getElementById('msg').style.display = 'none';
         };
-        
-        document.getElementById('showLoginBtn').onclick = function() {
+
+        document.getElementById('showLoginBtn').onclick = () => {
             document.getElementById('registerForm').style.display = 'none';
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('msg').style.display = 'none';
         };
-        
-        function showMsg(text, type) {
-            var msg = document.getElementById('msg');
-            msg.innerText = text;
-            msg.style.display = 'block';
-            msg.className = 'msg';
-            if(type === 'error') msg.classList.add('msg-error');
-            if(type === 'success') msg.classList.add('msg-success');
-        }
+
+        // 检查是否已经登录过，如果登录过直接跳主页
+        window.onload = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) window.location.href = 'main.html';
+        };
     </script>
 </body>
 </html>
