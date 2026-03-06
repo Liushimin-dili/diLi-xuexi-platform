@@ -44,31 +44,38 @@
     </div>
 
     <script>
+        alert('页面加载成功！Supabase SDK: ' + typeof supabase);
+        
         const SUPABASE_URL = 'https://adcdrzzyhveuhxchqbcs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_KFqWdKhpA-IJCRG3h6crvA_tEQtC4wI';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        alert('Supabase客户端创建完成');
 
         let currentRole = 'student';
         let isLoginMode = true;
 
-        function setRole(role) {
+        window.setRole = function(role) {
             currentRole = role;
             document.getElementById('tabStudent').className = role === 'student' ? 'flex-1 py-2 rounded-lg bg-white shadow text-blue-600 font-bold' : 'flex-1 py-2 rounded-lg text-gray-500';
             document.getElementById('tabTeacher').className = role === 'teacher' ? 'flex-1 py-2 rounded-lg bg-white shadow text-blue-600 font-bold' : 'flex-1 py-2 rounded-lg text-gray-500';
         }
 
-        function toggleMode() {
+        window.toggleMode = function() {
             isLoginMode = !isLoginMode;
             document.getElementById('btnMain').innerText = isLoginMode ? '立即登录' : '创建账号';
             document.getElementById('btnSub').innerText = isLoginMode ? '没有账号？立即注册' : '已有账号？点此登录';
         }
 
-        async function handleAuth(type) {
+        window.handleAuth = async function(type) {
+            alert('handleAuth被调用了！');
+            
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const msgBox = document.getElementById('msg');
 
             if(!email || !password) return alert('请填写完整信息');
+
+            alert('开始登录: ' + email);
 
             try {
                 let result;
@@ -81,13 +88,14 @@
                     });
                 }
 
+                alert('结果: ' + JSON.stringify({error: result.error?.message}));
+
                 if(result.error) throw result.error;
 
                 msgBox.className = "mt-4 text-center text-sm p-3 rounded-lg bg-green-100 text-green-700 block";
                 msgBox.innerText = isLoginMode ? "登录成功，正在跳转..." : "注册成功！请登录";
                 
                 if(isLoginMode) {
-                    // 根据元数据判断角色跳转
                     const { data: { user } } = await supabase.auth.getUser();
                     const role = user.user_metadata.role;
                     setTimeout(() => {
@@ -95,10 +103,13 @@
                     }, 1000);
                 }
             } catch (err) {
+                alert('错误: ' + err.message);
                 msgBox.className = "mt-4 text-center text-sm p-3 rounded-lg bg-red-100 text-red-700 block";
                 msgBox.innerText = err.message;
             }
         }
+        
+        alert('JavaScript初始化完成');
     </script>
 </body>
 </html>
