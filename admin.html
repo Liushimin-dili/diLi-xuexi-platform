@@ -3,443 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>初中地理学习平台 - 教师端</title>
+    <title>教师管理后台</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
-        body { font-family: 'Noto Sans SC', sans-serif; }
-    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    
-    <!-- 登录页 -->
-    <div id="loginPage" class="p-4">
-        <div class="max-w-sm mx-auto mt-20">
-            <div class="bg-white rounded-2xl p-8 shadow-sm text-center">
-                <i class="fa-solid fa-chalkboard-user text-4xl text-blue-600 mb-3"></i>
-                <h1 class="text-xl font-bold mb-1">教师后台</h1>
-                <p class="text-gray-500 text-sm mb-4">请使用教师账号登录</p>
-                <input id="adminEmail" type="email" placeholder="教师邮箱" class="w-full px-3 py-2 border rounded-lg mb-2 text-sm">
-                <input id="adminPassword" type="password" placeholder="密码" class="w-full px-3 py-2 border rounded-lg mb-2 text-sm">
-                <button onclick="adminLogin()" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold text-sm">登录</button>
-                <a href="index.html" class="block mt-3 text-blue-500 text-sm">返回学生端</a>
-            </div>
-        </div>
-    </div>
+<body class="bg-slate-50 flex h-screen overflow-hidden">
 
-    <!-- 管理后台 -->
-    <div id="adminPage" class="hidden">
-        <!-- 顶部导航 -->
-        <header class="bg-white shadow-sm sticky top-0 z-40">
-            <div class="flex items-center justify-between px-4 py-3">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-chalkboard-user text-blue-600 text-xl"></i>
-                    <span class="font-bold text-gray-800 text-sm">教师后台</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span id="adminName" class="text-sm text-gray-600"></span>
-                    <button onclick="adminLogout()" class="text-gray-500 text-sm">退出</button>
-                </div>
-            </div>
+    <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col">
+        <div class="p-6 text-white font-bold text-xl flex items-center gap-3 bg-slate-800">
+            <i class="fa-solid fa-chalkboard-user text-blue-400"></i>管理后台
+        </div>
+        <nav class="flex-1 p-4 space-y-1">
+            <a href="#" class="block px-4 py-3 bg-blue-600 text-white rounded-xl flex items-center gap-3">
+                <i class="fa-solid fa-layer-group"></i> 知识点管理
+            </a>
+            <a href="#" class="block px-4 py-3 hover:bg-slate-800 rounded-xl flex items-center gap-3">
+                <i class="fa-solid fa-database"></i> 题库维护
+            </a>
+            <a href="#" class="block px-4 py-3 hover:bg-slate-800 rounded-xl flex items-center gap-3">
+                <i class="fa-solid fa-users"></i> 学生数据
+            </a>
+        </nav>
+        <div class="p-4 border-t border-slate-800">
+            <button onclick="location.href='index.html'" class="w-full py-2 border border-slate-700 rounded-lg text-sm hover:bg-red-500 hover:text-white transition-all">退出系统</button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-auto">
+        <header class="h-16 bg-white border-b flex items-center justify-between px-8">
+            <h2 class="font-bold text-gray-700">内容列表</h2>
+            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm shadow-lg shadow-blue-100">+ 新增内容</button>
         </header>
 
-        <!-- 功能导航 -->
-        <div class="p-4 space-y-2">
-            <button onclick="showAdminTab('dashboard')" class="w-full bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-chart-line text-blue-500 text-xl"></i>
-                    <span class="font-medium">数据统计</span>
+        <div class="p-8">
+            <div class="grid grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <p class="text-gray-400 text-sm">累计学生</p>
+                    <p class="text-3xl font-bold mt-1">1,204</p>
                 </div>
-                <i class="fa-solid fa-chevron-right text-gray-400"></i>
-            </button>
-            
-            <button onclick="showAdminTab('questions')" class="w-full bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-pen-to-square text-green-500 text-xl"></i>
-                    <span class="font-medium">题库管理</span>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <p class="text-gray-400 text-sm">今日练习数</p>
+                    <p class="text-3xl font-bold mt-1 text-green-500">358</p>
                 </div>
-                <i class="fa-solid fa-chevron-right text-gray-400"></i>
-            </button>
-            
-            <button onclick="showAdminTab('knowledge')" class="w-full bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-book text-purple-500 text-xl"></i>
-                    <span class="font-medium">知识点管理</span>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <p class="text-gray-400 text-sm">待批改试卷</p>
+                    <p class="text-3xl font-bold mt-1 text-orange-500">12</p>
                 </div>
-                <i class="fa-solid fa-chevron-right text-gray-400"></i>
-            </button>
-            
-            <button onclick="showAdminTab('exams')" class="w-full bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-file-alt text-yellow-500 text-xl"></i>
-                    <span class="font-medium">试卷管理</span>
-                </div>
-                <i class="fa-solid fa-chevron-right text-gray-400"></i>
-            </button>
-            
-            <button onclick="showAdminTab('maps')" class="w-full bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-map text-red-500 text-xl"></i>
-                    <span class="font-medium">地图管理</span>
-                </div>
-                <i class="fa-solid fa-chevron-right text-gray-400"></i>
-            </button>
-            
-            <button onclick="showAdminTab('materials')" class="w-full bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-folder text-indigo-500 text-xl"></i>
-                    <span class="font-medium">资料管理</span>
-                </div>
-                <i class="fa-solid fa-chevron-right text-gray-400"></i>
-            </button>
-            
-            <button onclick="showAdminTab('users')" class="w-full bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-users text-pink-500 text-xl"></i>
-                    <span class="font-medium">学生管理</span>
-                </div>
-                <i class="fa-solid fa-chevron-right text-gray-400"></i>
-            </button>
-        </div>
-    </div>
+            </div>
 
-    <!-- 数据统计页 -->
-    <div id="dashboardTab" class="hidden p-4">
-        <h2 class="font-bold text-lg mb-4">数据统计</h2>
-        
-        <div class="grid grid-cols-2 gap-3 mb-4">
-            <div class="bg-white p-4 rounded-lg shadow-sm text-center">
-                <p id="totalUsers" class="text-2xl font-bold text-blue-500">0</p>
-                <p class="text-xs text-gray-500">注册用户</p>
-            </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm text-center">
-                <p id="totalQuestions" class="text-2xl font-bold text-green-500">0</p>
-                <p class="text-xs text-gray-500">题目总数</p>
-            </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm text-center">
-                <p id="totalExams" class="text-2xl font-bold text-yellow-500">0</p>
-                <p class="text-xs text-gray-500">考试次数</p>
-            </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm text-center">
-                <p id="avgScore" class="text-2xl font-bold text-purple-500">0%</p>
-                <p class="text-xs text-gray-500">平均正确率</p>
-            </div>
-        </div>
-        
-        <div class="bg-white p-4 rounded-lg shadow-sm">
-            <h3 class="font-bold mb-3">高频错题排行</h3>
-            <div id="wrongRanking" class="space-y-2">
-                <p class="text-gray-400 text-sm text-center py-4">暂无数据</p>
+            <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 border-b">
+                        <tr>
+                            <th class="p-4 text-xs font-bold text-gray-400 uppercase">章节名称</th>
+                            <th class="p-4 text-xs font-bold text-gray-400 uppercase">年级</th>
+                            <th class="p-4 text-xs font-bold text-gray-400 uppercase">最后更新</th>
+                            <th class="p-4 text-xs font-bold text-gray-400 uppercase">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y text-sm">
+                        <tr>
+                            <td class="p-4 font-medium">中国的疆域</td>
+                            <td class="p-4"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">七年级</span></td>
+                            <td class="p-4 text-gray-400">2026-03-05</td>
+                            <td class="p-4 text-blue-600 cursor-pointer">编辑 / 删除</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-        
-        <button onclick="showAdminTab('admin')" class="mt-4 text-blue-500 text-sm"><i class="fa-solid fa-arrow-left"></i> 返回</button>
-    </div>
-
-    <!-- 题库管理页 -->
-    <div id="questionsTab" class="hidden p-4">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="font-bold text-lg">题库管理</h2>
-            <button onclick="showAddQuestion()" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">+ 添加题目</button>
-        </div>
-        
-        <div class="mb-3 flex gap-2 overflow-x-auto">
-            <button onclick="filterAdminQuestions('all')" class="px-3 py-1 bg-blue-500 text-white rounded-full text-xs">全部</button>
-            <button onclick="filterAdminQuestions(1)" class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs">第一章</button>
-            <button onclick="filterAdminQuestions(2)" class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs">第二章</button>
-            <button onclick="filterAdminQuestions(3)" class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs">第三章</button>
-            <button onclick="filterAdminQuestions(4)" class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs">第四章</button>
-        </div>
-        
-        <div id="questionList" class="space-y-2"></div>
-        
-        <button onclick="showAdminTab('admin')" class="mt-4 text-blue-500 text-sm"><i class="fa-solid fa-arrow-left"></i> 返回</button>
-    </div>
-
-    <!-- 知识点管理页 -->
-    <div id="knowledgeTab" class="hidden p-4">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="font-bold text-lg">知识点管理</h2>
-            <button onclick="showAddKnowledge()" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">+ 添加知识点</button>
-        </div>
-        
-        <div id="knowledgeList" class="space-y-2"></div>
-        
-        <button onclick="showAdminTab('admin')" class="mt-4 text-blue-500 text-sm"><i class="fa-solid fa-arrow-left"></i> 返回</button>
-    </div>
-
-    <!-- 试卷管理页 -->
-    <div id="examsTab" class="hidden p-4">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="font-bold text-lg">试卷管理</h2>
-            <button onclick="showAddExam()" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">+ 添加试卷</button>
-        </div>
-        
-        <div id="examList" class="space-y-2">
-            <div class="bg-white p-3 rounded-lg shadow-sm">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="font-medium text-sm">2024年上海市中考地理真题</p>
-                        <p class="text-xs text-gray-500">25题 | 100分 | 60分钟</p>
-                    </div>
-                    <button class="text-red-500 text-xs">删除</button>
-                </div>
-            </div>
-        </div>
-        
-        <button onclick="showAdminTab('admin')" class="mt-4 text-blue-500 text-sm"><i class="fa-solid fa-arrow-left"></i> 返回</button>
-    </div>
-
-    <!-- 地图管理页 -->
-    <div id="mapsTab" class="hidden p-4">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="font-bold text-lg">地图管理</h2>
-            <button onclick="showAddMap()" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">+ 上传地图</button>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-2" id="mapList">
-            <div class="bg-white p-2 rounded-lg shadow-sm">
-                <div class="bg-gray-200 h-24 rounded flex items-center justify-center">
-                    <i class="fa-solid fa-map text-gray-400 text-2xl"></i>
-                </div>
-                <p class="text-xs mt-1 text-center">中国政区图</p>
-            </div>
-            <div class="bg-white p-2 rounded-lg shadow-sm">
-                <div class="bg-gray-200 h-24 rounded flex items-center justify-center">
-                    <i class="fa-solid fa-map text-gray-400 text-2xl"></i>
-                </div>
-                <p class="text-xs mt-1 text-center">中国地形图</p>
-            </div>
-        </div>
-        
-        <button onclick="showAdminTab('admin')" class="mt-4 text-blue-500 text-sm"><i class="fa-solid fa-arrow-left"></i> 返回</button>
-    </div>
-
-    <!-- 资料管理页 -->
-    <div id="materialsTab" class="hidden p-4">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="font-bold text-lg">资料管理</h2>
-            <button onclick="showAddMaterial()" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">+ 上传资料</button>
-        </div>
-        
-        <div id="materialList" class="space-y-2">
-            <div class="bg-white p-3 rounded-lg shadow-sm flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-file-pdf text-red-500"></i>
-                    <span class="text-sm">地理背诵提纲.pdf</span>
-                </div>
-                <button class="text-red-500 text-xs">删除</button>
-            </div>
-            <div class="bg-white p-3 rounded-lg shadow-sm flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-file-pdf text-red-500"></i>
-                    <span class="text-sm">答题模板.pdf</span>
-                </div>
-                <button class="text-red-500 text-xs">删除</button>
-            </div>
-        </div>
-        
-        <button onclick="showAdminTab('admin')" class="mt-4 text-blue-500 text-sm"><i class="fa-solid fa-arrow-left"></i> 返回</button>
-    </div>
-
-    <!-- 学生管理页 -->
-    <div id="usersTab" class="hidden p-4">
-        <h2 class="font-bold text-lg mb-4">学生管理</h2>
-        
-        <div id="userList" class="space-y-2">
-            <p class="text-gray-400 text-sm text-center py-4">暂无注册学生</p>
-        </div>
-        
-        <button onclick="showAdminTab('admin')" class="mt-4 text-blue-500 text-sm"><i class="fa-solid fa-arrow-left"></i> 返回</button>
-    </div>
-
-    <script>
-        // Supabase配置
-        const SUPABASE_URL = 'https://adcdrzzyhveuhxchqbcs.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_KFqWdKhpA-IJCRG3h6crvA_tEQtC4wI';
-        
-        // 教师账号（简单验证）
-        const ADMIN_EMAIL = 'admin@geography.com';
-        const ADMIN_PASSWORD = 'admin123';
-        
-        // 数据
-        const chapters = [
-            { id: 1, grade: '七年级上册', title: '第一章：地球和地图', sections: ['地球的形状和大小', '地球的运动', '地图的阅读', '地形图的判读'] },
-            { id: 2, grade: '七年级下册', title: '第二章：我们邻近的国家和地区', sections: ['日本', '东南亚', '印度', '俄罗斯'] },
-            { id: 3, grade: '八年级上册', title: '第三章：中国的自然资源', sections: ['自然资源的基本特征', '土地资源', '水资源', '交通运输'] },
-            { id: 4, grade: '八年级下册', title: '第四章：中国的经济发展', sections: ['交通运输', '农业', '工业', '高新技术产业'] }
-        ];
-        
-        const questions = [
-            { chapter: 1, q: "中国位于哪个大洲？", options: ["亚洲", "欧洲", "北美洲", "非洲"], a: 0 },
-            { chapter: 1, q: "中国陆地面积约多少万平方千米？", options: ["960万", "9600万", "96万", "9.6万"], a: 0 },
-            { chapter: 2, q: "中国地势特点是什么？", options: ["西高东低", "东高西低", "南高北低", "北高南低"], a: 0 },
-            { chapter: 2, q: "长江注入哪个海洋？", options: ["东海", "黄海", "渤海", "南海"], a: 0 },
-            { chapter: 3, q: "以下哪个是非可再生资源？", options: ["矿产资源", "土地资源", "水资源", "森林资源"], a: 0 },
-            { chapter: 3, q: "中国水资源分布特点是？", options: ["南多北少", "北多南少", "东多西少", "西多东少"], a: 0 },
-            { chapter: 4, q: "中国最重要的交通运输方式是？", options: ["铁路", "公路", "航空", "水路"], a: 0 },
-            { chapter: 4, q: "中国最大综合性工业基地是？", options: ["沪宁杭", "辽中南", "京津唐", "珠江三角洲"], a: 0 }
-        ];
-        
-        // 初始化
-        window.onload = function() {
-            const admin = localStorage.getItem('geo_admin');
-            if(admin) {
-                showAdminPage();
-            }
-            loadStats();
-        }
-        
-        // 登录
-        function adminLogin() {
-            const email = document.getElementById('adminEmail').value;
-            const password = document.getElementById('adminPassword').value;
-            
-            // 简单验证（实际应该从服务器验证）
-            if(email && password) {
-                localStorage.setItem('geo_admin', JSON.stringify({email, password}));
-                showAdminPage();
-            } else {
-                alert('请输入邮箱和密码');
-            }
-        }
-        
-        function adminLogout() {
-            localStorage.removeItem('geo_admin');
-            document.getElementById('loginPage').classList.remove('hidden');
-            document.getElementById('adminPage').classList.add('hidden');
-        }
-        
-        function showAdminPage() {
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('adminPage').classList.remove('hidden');
-            const admin = JSON.parse(localStorage.getItem('geo_admin'));
-            if(admin) {
-                document.getElementById('adminName').innerText = admin.email;
-            }
-        }
-        
-        // 标签切换
-        function showAdminTab(tab) {
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('adminPage').classList.add('hidden');
-            document.getElementById('dashboardTab').classList.add('hidden');
-            document.getElementById('questionsTab').classList.add('hidden');
-            document.getElementById('knowledgeTab').classList.add('hidden');
-            document.getElementById('examsTab').classList.add('hidden');
-            document.getElementById('mapsTab').classList.add('hidden');
-            document.getElementById('materialsTab').classList.add('hidden');
-            document.getElementById('usersTab').classList.add('hidden');
-            
-            if(tab === 'admin') {
-                document.getElementById('adminPage').classList.remove('hidden');
-            } else {
-                document.getElementById(tab + 'Tab').classList.remove('hidden');
-                if(tab === 'questions') renderAdminQuestions();
-                if(tab === 'knowledge') renderKnowledge();
-                if(tab === 'users') renderUsers();
-            }
-        }
-        
-        // 加载统计数据
-        function loadStats() {
-            document.getElementById('totalUsers').innerText = '1';
-            document.getElementById('totalQuestions').innerText = questions.length;
-            document.getElementById('totalExams').innerText = '9';
-            document.getElementById('avgScore').innerText = '75%';
-        }
-        
-        // 渲染题库
-        function renderAdminQuestions(list) {
-            const qList = list || questions;
-            let html = '';
-            qList.forEach((q, i) => {
-                html += `<div class="bg-white p-3 rounded-lg shadow-sm">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1">
-                            <p class="text-sm font-medium">${i+1}. ${q.q}</p>
-                            <p class="text-xs text-gray-500 mt-1">章节${q.chapter} | 答案: ${q.options[q.a]}</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button class="text-blue-500 text-xs">编辑</button>
-                            <button class="text-red-500 text-xs">删除</button>
-                        </div>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('questionList').innerHTML = html;
-        }
-        
-        function filterAdminQuestions(chapter) {
-            if(chapter === 'all') {
-                renderAdminQuestions(questions);
-            } else {
-                renderAdminQuestions(questions.filter(q => q.chapter === chapter));
-            }
-        }
-        
-        // 渲染知识点
-        function renderKnowledge() {
-            let html = '';
-            chapters.forEach(ch => {
-                ch.sections.forEach((s, i) => {
-                    html += `<div class="bg-white p-3 rounded-lg shadow-sm">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-sm font-medium">${ch.grade} - ${s}</p>
-                                <p class="text-xs text-gray-500">${ch.title}</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button class="text-blue-500 text-xs">编辑</button>
-                                <button class="text-red-500 text-xs">删除</button>
-                            </div>
-                        </div>
-                    </div>`;
-                });
-            });
-            document.getElementById('knowledgeList').innerHTML = html;
-        }
-        
-        // 渲染学生
-        function renderUsers() {
-            document.getElementById('userList').innerHTML = `
-                <div class="bg-white p-3 rounded-lg shadow-sm">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="text-sm font-medium">test@example.com</p>
-                            <p class="text-xs text-gray-500">做题: 15题 | 正确率: 80%</p>
-                        </div>
-                        <button class="text-blue-500 text-xs">查看详情</button>
-                    </div>
-                </div>`;
-        }
-        
-        // 添加题目
-        function showAddQuestion() {
-            alert('添加题目功能 - 需要 Supabase 后端支持');
-        }
-        
-        // 添加知识点
-        function showAddKnowledge() {
-            alert('添加知识点功能 - 需要 Supabase 后端支持');
-        }
-        
-        // 添加试卷
-        function showAddExam() {
-            alert('添加试卷功能 - 需要 Supabase 后端支持');
-        }
-        
-        // 上传地图
-        function showAddMap() {
-            alert('上传地图功能 - 需要 Supabase 存储支持');
-        }
-        
-        // 上传资料
-        function showAddMaterial() {
-            alert('上传资料功能 - 需要 Supabase 存储支持');
-        }
-    </script>
+    </main>
 </body>
 </html>
