@@ -3,156 +3,795 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录 - 初中地理学习平台</title>
+    <title>初中地理学习平台</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        body { font-family: 'Microsoft YaHei', sans-serif; }
+        .card { transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-4px); }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
-    <div class="glass w-full max-w-md rounded-3xl shadow-2xl p-8 fade-in">
-        <div class="text-center mb-8">
-            <div class="inline-block p-4 bg-blue-100 rounded-2xl mb-4">
-                <i class="fa-solid fa-earth-asia text-4xl text-blue-600"></i>
+<body class="bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 min-h-screen">
+    
+    <!-- 登录遮罩层 - 必须先登录 -->
+    <div id="loginOverlay" class="fixed inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 w-96 shadow-2xl text-center">
+            <i class="fa-solid fa-graduation-cap text-5xl text-blue-600 mb-4"></i>
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">初中地理学习平台</h1>
+            <p class="text-gray-500 mb-6">请先登录后使用</p>
+            <div id="loginForm">
+                <input id="loginEmail" type="email" placeholder="邮箱" class="w-full px-4 py-3 border rounded-lg mb-3 text-center">
+                <input id="loginPassword" type="password" placeholder="密码" class="w-full px-4 py-3 border rounded-lg mb-3 text-center">
+                <button onclick="doLogin()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700">登录</button>
+                <button onclick="showRegisterForm()" class="w-full mt-2 text-blue-600 py-2">没有账号？注册</button>
             </div>
-            <h1 class="text-2xl font-bold text-gray-800">初中地理学习平台</h1>
-            <p class="text-gray-500 text-sm mt-1">自主学习 · 轻松备考</p>
+            <div id="registerForm" class="hidden">
+                <input id="regEmail" type="email" placeholder="邮箱" class="w-full px-4 py-3 border rounded-lg mb-3 text-center">
+                <input id="regPassword" type="password" placeholder="密码" class="w-full px-4 py-3 border rounded-lg mb-3 text-center">
+                <button onclick="doRegister()" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700">注册</button>
+                <button onclick="showLoginForm()" class="w-full mt-2 text-gray-600 py-2">已有账号？登录</button>
+            </div>
+            <p id="loginError" class="text-red-500 mt-3 text-sm hidden"></p>
         </div>
+    </div>
 
-        <div class="flex bg-gray-100 p-1 rounded-xl mb-6">
-            <button id="tabStudent" onclick="setRole('student')" class="flex-1 py-2 rounded-lg bg-white shadow text-blue-600 font-bold transition-all">我是学生</button>
-            <button id="tabTeacher" onclick="setRole('teacher')" class="flex-1 py-2 rounded-lg text-gray-500 transition-all">我是老师</button>
+    <!-- 主网站内容 -->
+    <div id="mainContent" class="hidden">
+    
+    <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-globe-asia text-blue-600 text-2xl"></i>
+                <h1 class="text-xl font-bold text-gray-800">初中地理学习平台</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="progressText" class="text-sm text-gray-500">学习进度: 0%</span>
+                <div class="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-blue-500 rounded-full" style="width: 0%"></div>
+                </div>
+                <button onclick="resetProgress()" class="text-xs text-red-500 hover:text-red-700">
+                    <i class="fa-solid fa-rotate-left"></i> 重置
+                </button>
+            </div>
         </div>
+    </header>
 
-        <div id="loginForm" class="space-y-4">
-            <div class="relative">
-                <i class="fa-solid fa-user absolute left-4 top-3.5 text-gray-400"></i>
-                <input type="text" id="username" placeholder="用户名" class="w-full pl-11 p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
+    <div class="max-w-7xl mx-auto px-4 py-8 flex gap-6">
+        
+        <aside class="w-64 flex-shrink-0">
+            <div class="bg-white rounded-xl shadow-sm p-4 sticky top-24">
+                <h2 class="font-bold text-gray-800 mb-4">
+                    <i class="fa-solid fa-list text-blue-600 mr-2"></i>目录
+                </h2>
+                <nav id="chapterList" class="space-y-1"></nav>
             </div>
-            <div class="relative">
-                <i class="fa-solid fa-lock absolute left-4 top-3.5 text-gray-400"></i>
-                <input type="password" id="password" placeholder="密码 (至少6位)" class="w-full pl-11 p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
-            </div>
+        </aside>
+
+        <main class="flex-1 space-y-6">
             
-            <button onclick="handleAuth()" id="btnMain" class="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all">立即登录</button>
-            <button onclick="toggleMode()" id="btnSub" class="w-full text-gray-500 text-sm">没有账号？立即注册</button>
-        </div>
-        <div id="msg" class="mt-4 text-center text-sm hidden p-3 rounded-lg"></div>
+            <div id="welcomePanel" class="bg-white rounded-xl shadow-sm p-8 text-center fade-in">
+                <div id="loginSection" class="mb-4">
+                    <button onclick="showLoginModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg mr-2">
+                        <i class="fa-solid fa-user"></i> 登录
+                    </button>
+                    <button onclick="showRegisterModal()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                        <i class="fa-solid fa-user-plus"></i> 注册
+                    </button>
+                </div>
+                <div id="userInfo" class="hidden mb-4 p-2 bg-green-50 rounded-lg">
+                    <span id="userEmail" class="text-gray-600"></span>
+                    <button onclick="logout()" class="ml-2 text-red-500 hover:text-red-700 text-sm">退出</button>
+                </div>
+                <i class="fa-solid fa-earth-americas text-6xl text-blue-500 mb-4"></i>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">欢迎来到初中地理学习平台</h2>
+                <p class="text-gray-600 mb-6">选择左侧章节开始学习，或点击下方按钮进行测验</p>
+                <div class="flex justify-center gap-4">
+                    <button onclick="startQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium">
+                        <i class="fa-solid fa-pen-to-square mr-2"></i>开始测验
+                    </button>
+                    <button onclick="showRandomQuestion()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-medium">
+                        <i class="fa-solid fa-question-circle mr-2"></i>随机一题
+                    </button>
+                </div>
+            </div>
+
+            <div id="contentArea" class="hidden"></div>
+
+            <div id="quizArea" class="hidden">
+                <div class="bg-white rounded-xl shadow-sm p-6 fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-gray-800">
+                            <i class="fa-solid fa-clipboard-question text-blue-600 mr-2"></i>章节测验
+                        </h2>
+                        <span id="quizScore" class="text-sm text-gray-500">得分: 0</span>
+                    </div>
+                    
+                    <div id="questionContainer"></div>
+
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="prevQuestion()" id="prevBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg" disabled>
+                            <i class="fa-solid fa-arrow-left mr-1"></i>上一题
+                        </button>
+                        <button onclick="nextQuestion()" id="nextBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                            下一题<i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <aside class="w-72 flex-shrink-0 space-y-6">
+            
+            <div class="bg-white rounded-xl shadow-sm p-4">
+                <h3 class="font-bold text-gray-800 mb-3">
+                    <i class="fa-solid fa-lightbulb text-yellow-500 mr-2"></i>今日知识
+                </h3>
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-700" id="tipContent">中国位于亚洲东部、太平洋西岸，是一个海陆兼备的国家。</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-4">
+                <h3 class="font-bold text-gray-800 mb-3">
+                    <i class="fa-solid fa-bookmark text-red-500 mr-2"></i>错题记录
+                </h3>
+                <div id="wrongNotes" class="space-y-2 max-h-48 overflow-y-auto">
+                    <p class="text-sm text-gray-400 text-center py-4">暂无错题</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-4">
+                <h3 class="font-bold text-gray-800 mb-3">
+                    <i class="fa-solid fa-star text-yellow-500 mr-2"></i>收藏题目
+                </h3>
+                <div id="favorites" class="space-y-2 max-h-48 overflow-y-auto">
+                    <p class="text-sm text-gray-400 text-center py-4">暂无收藏</p>
+                </div>
+            </div>
+
+        </aside>
     </div>
 
     <script>
+        // Chapter data
+        var chapters = [
+            {
+                id: 1,
+                title: "第一章：从世界看中国",
+                icon: "fa-flag",
+                sections: [
+                    { id: "1-1", title: "中国的地理位置", content: "中国位于亚洲东部、太平洋西岸，领土跨热带、北温带。大部分位于北温带，小部分位于热带。" },
+                    { id: "1-2", title: "中国的疆域", content: "中国陆地面积约960万平方千米，居世界第三。最北端在漠河，最南端在曾母暗沙。最东端在黑龙江与乌苏里江汇合处，最西端在帕米尔高原。" },
+                    { id: "1-3", title: "中国的邻国", content: "中国陆上邻国14个：朝鲜、俄罗斯、蒙古、哈萨克斯坦、吉尔吉斯斯坦、塔吉克斯坦、阿富汗、巴基斯坦、印度、尼泊尔、不丹、缅甸、老挝、越南。" },
+                    { id: "1-4", title: "中国的人口", content: "中国是世界上人口最多的国家。人口分布特点：东南人口稠密，西北人口稀疏。黑河-腾冲线是中国人口地理分界线。" },
+                    { id: "1-5", title: "中国的民族", content: "中国有56个民族。汉族人口最多，少数民族中壮族人口最多。民族分布特点：大散居、小聚居、交错杂居。" }
+                ]
+            },
+            {
+                id: 2,
+                title: "第二章：中国的自然环境",
+                icon: "fa-mountain",
+                sections: [
+                    { id: "2-1", title: "中国的地形", content: "中国地形特点：地形复杂多样，山区面积广大。山区包括山地、丘陵、高原崎岖部分。山区发展旅游、林牧业，但易发生滑坡、泥石流。" },
+                    { id: "2-2", title: "中国的地势", content: "中国地势特点：西高东低，呈三级阶梯分布。第一级阶梯：青藏高原；第二级阶梯：高原、盆地；第三级阶梯：平原、丘陵。" },
+                    { id: "2-3", title: "主要山脉", content: "主要山脉走向：东西走向、东北-西南走向、南北走向、弧形山脉。山脉是地形骨架，构成省区分界线。" },
+                    { id: "2-4", title: "中国的气候", content: "中国气候特点：气候复杂多样，季风气候显著。季风气候特点：雨热同期。冬季盛行西北风，寒冷干燥；夏季盛行东南风，温暖湿润。" },
+                    { id: "2-5", title: "河流与湖泊", content: "长江：中国第一大河，世界第三长河，发源于唐古拉山脉，注入东海。黄河：中国第二长河，发源于巴颜喀拉山脉，注入渤海，含沙量最大。" }
+                ]
+            },
+            {
+                id: 3,
+                title: "第三章：中国的自然资源",
+                icon: "fa-seedling",
+                sections: [
+                    { id: "3-1", title: "自然资源概述", content: "自然资源分为可再生资源和非可再生资源。土地、水、森林属于可再生资源，矿产资源属于非可再生资源。" },
+                    { id: "3-2", title: "土地资源", content: "中国土地利用类型：耕地、林地、草地、建筑用地等。耕地主要分布在东部季风区，林地主要分布在东北、西南山地，草地主要分布在西部内陆高原。" },
+                    { id: "3-3", title: "水资源", content: "中国水资源分布特点：南多北少，东多西少。年降水量分布：从东南沿海向西北内陆递减。解决措施：跨流域调水、修建水库、节约用水。" },
+                    { id: "3-4", title: "南水北调", content: "南水北调工程：把长江流域的水调到华北、西北地区。东线：从扬州取水，沿京杭运河北上；中线：从丹江口水库取水，北送北京；西线：从长江上游取水。" }
+                ]
+            },
+            {
+                id: 4,
+                title: "第四章：中国经济发展",
+                icon: "fa-industry",
+                sections: [
+                    { id: "4-1", title: "交通运输", content: "交通运输方式：铁路、公路、水路、航空、管道。铁路是中国最重要的交通运输方式。主要铁路干线：京哈线、京沪线、京九线、京广线、陇海线、沪昆线等。" },
+                    { id: "4-2", title: "农业", content: "中国农业分布：东部以种植业为主，西部以畜牧业为主。种植业分布：南方水田，北方旱地。主要粮食作物：水稻、小麦。" },
+                    { id: "4-3", title: "工业", content: "中国四大工业基地：辽中南（重工业）、京津唐（北方综合性）、沪宁杭（全国最大综合性）、珠江三角洲（外向型）。" },
+                    { id: "4-4", title: "高新技术产业", content: "高新技术产业分布特点：东部沿海地区为主，大中城市周围。代表产业：信息技术、生物技术、新能源、新材料等。" }
+                ]
+            }
+        ];
+
+        // Questions
+        var questions = [
+            { chapter: 1, question: "中国位于哪个大洲？", options: ["亚洲", "欧洲", "北美洲", "非洲"], answer: 0 },
+            { chapter: 1, question: "中国陆地面积约多少万平方千米？", options: ["960万", "9600万", "96万", "9.6万"], answer: 0 },
+            { chapter: 1, question: "中国最北端位于哪个省？", options: ["黑龙江", "吉林", "辽宁", "内蒙古"], answer: 0 },
+            { chapter: 1, question: "中国人口地理分界线是？", options: ["黑河-腾冲线", "长江-黄河线", "京沪线", "陇海线"], answer: 0 },
+            { chapter: 1, question: "中国56个民族中人口最多的是？", options: ["汉族", "壮族", "满族", "回族"], answer: 0 },
+            { chapter: 2, question: "中国地势特点是什么？", options: ["西高东低", "东高西低", "南高北低", "北高南低"], answer: 0 },
+            { chapter: 2, question: "中国第一级阶梯主要地形区是？", options: ["青藏高原", "内蒙古高原", "黄土高原", "云贵高原"], answer: 0 },
+            { chapter: 2, question: "长江注入哪个海洋？", options: ["东海", "黄海", "渤海", "南海"], answer: 0 },
+            { chapter: 2, question: "黄河含沙量在世界河流中排名？", options: ["第一位", "第二位", "第三位", "第四位"], answer: 0 },
+            { chapter: 2, question: "中国季风气候的特点是？", options: ["雨热同期", "全年温和", "全年炎热", "冬季多雨"], answer: 0 },
+            { chapter: 3, question: "以下哪个是非可再生资源？", options: ["矿产资源", "土地资源", "水资源", "森林资源"], answer: 0 },
+            { chapter: 3, question: "中国水资源分布特点是？", options: ["南多北少", "北多南少", "东多西少", "西多东少"], answer: 0 },
+            { chapter: 3, question: "南水北调工程中线取水地点是？", options: ["丹江口水库", "三峡", "扬州", "小浪底"], answer: 0 },
+            { chapter: 3, question: "中国土地利用类型中面积最大的是？", options: ["草地", "林地", "耕地", "建筑用地"], answer: 0 },
+            { chapter: 4, question: "中国最重要的交通运输方式是？", options: ["铁路", "公路", "航空", "水路"], answer: 0 },
+            { chapter: 4, question: "中国最大综合性工业基地是？", options: ["沪宁杭", "辽中南", "京津唐", "珠江三角洲"], answer: 0 },
+            { chapter: 4, question: "中国南方主要耕地类型是？", options: ["水田", "旱地", "草地", "林地"], answer: 0 },
+            { chapter: 4, question: "高新技术产业主要分布在？", options: ["东部沿海", "西部内陆", "中部地区", "南北极"], answer: 0 }
+        ];
+
+        // State
+        var learnedSections = {};
+        var wrongAnswers = [];
+        var favoriteQuestions = [];
+        var currentQuestionIndex = 0;
+        var score = 0;
+        var questionAnswered = false;
+        var currentQuizQuestions = [];
+        var chapterProgress = {};
+
+        // Init
+        document.addEventListener("DOMContentLoaded", function() {
+            renderChapterList();
+            loadProgress();
+        });
+
+        // Render chapter list
+        function renderChapterList() {
+            var list = document.getElementById("chapterList");
+            var html = "";
+            for (var i = 0; i < chapters.length; i++) {
+                var ch = chapters[i];
+                html += '<div class="mb-2">';
+                html += '<button onclick="toggleChapter(' + ch.id + ')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 flex items-center justify-between">';
+                html += '<span class="font-medium text-gray-700"><i class="fa-solid ' + ch.icon + ' mr-2 text-blue-500"></i>' + ch.title + '</span>';
+                html += '<i class="fa-solid fa-chevron-down text-xs text-gray-400" id="icon-' + ch.id + '"></i>';
+                html += '</button>';
+                html += '<div id="sections-' + ch.id + '" class="ml-4 mt-1 space-y-1 hidden">';
+                for (var j = 0; j < ch.sections.length; j++) {
+                    var s = ch.sections[j];
+                    html += '<button onclick="showSection(' + ch.id + ',\'' + s.id + '\')" class="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-blue-50 rounded-lg flex items-center">';
+                    html += '<span class="flex-1">' + s.title + '</span>';
+                    html += '<i class="fa-solid fa-check-circle text-green-500 hidden" id="check-' + s.id + '"></i>';
+                    html += '</button>';
+                }
+                html += '</div></div>';
+            }
+            list.innerHTML = html;
+        }
+
+        // Toggle chapter
+        function toggleChapter(id) {
+            var sections = document.getElementById("sections-" + id);
+            var icon = document.getElementById("icon-" + id);
+            if (sections.classList.contains("hidden")) {
+                sections.classList.remove("hidden");
+                icon.classList.remove("fa-chevron-down");
+                icon.classList.add("fa-chevron-right");
+            } else {
+                sections.classList.add("hidden");
+                icon.classList.remove("fa-chevron-right");
+                icon.classList.add("fa-chevron-down");
+            }
+        }
+
+        // Show section
+        function showSection(chapterId, sectionId) {
+            var chapter = chapters[chapterId - 1];
+            var section = null;
+            for (var i = 0; i < chapter.sections.length; i++) {
+                if (chapter.sections[i].id === sectionId) {
+                    section = chapter.sections[i];
+                    break;
+                }
+            }
+            if (!section) return;
+
+            document.getElementById("welcomePanel").classList.add("hidden");
+            document.getElementById("quizArea").classList.add("hidden");
+            document.getElementById("contentArea").classList.remove("hidden");
+            
+            var chapterQuestions = 0;
+            for (var k = 0; k < questions.length; k++) {
+                if (questions[k].chapter === chapterId) chapterQuestions++;
+            }
+            
+            document.getElementById("contentArea").innerHTML = 
+                '<div class="bg-white rounded-xl shadow-sm p-6">' +
+                '<div class="flex items-center gap-3 mb-4">' +
+                '<span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm">第' + chapterId + '章</span>' +
+                '<h2 class="text-xl font-bold text-gray-800">' + section.title + '</h2></div>' +
+                '<p class="text-gray-700 leading-relaxed">' + section.content + '</p>' +
+                '<div class="mt-6 pt-4 border-t border-gray-200">' +
+                '<button onclick="showRelatedQuestions(' + chapterId + ')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">' +
+                '<i class="fa-solid fa-pen-to-square mr-2"></i>练习本章题目 (' + chapterQuestions + '道题)' +
+                '</button></div></div>';
+        }
+
+        // Show related questions
+        function showRelatedQuestions(chapterId) {
+            var chapterQuestions = [];
+            for (var i = 0; i < questions.length; i++) {
+                if (questions[i].chapter === chapterId) {
+                    chapterQuestions.push(questions[i]);
+                }
+            }
+            if (chapterQuestions.length === 0) {
+                alert("暂无相关题目");
+                return;
+            }
+            startQuiz(chapterQuestions);
+        }
+
+        // Mark chapter complete
+        function markChapterComplete(chapterId, questionIdx) {
+            if (!chapterProgress[chapterId]) {
+                chapterProgress[chapterId] = {};
+            }
+            chapterProgress[chapterId][questionIdx] = true;
+            
+            // Check if all questions completed
+            var chapterQuestions = 0;
+            for (var k = 0; k < questions.length; k++) {
+                if (questions[k].chapter === chapterId) chapterQuestions++;
+            }
+            
+            var completedCount = 0;
+            for (var key in chapterProgress[chapterId]) {
+                if (chapterProgress[chapterId][key]) completedCount++;
+            }
+            
+            if (completedCount >= chapterQuestions) {
+                var chapter = chapters[chapterId - 1];
+                for (var j = 0; j < chapter.sections.length; j++) {
+                    learnedSections[chapter.sections[j].id] = true;
+                    var check = document.getElementById("check-" + chapter.sections[j].id);
+                    if (check) check.classList.remove("hidden");
+                }
+                saveProgress();
+                updateProgress();
+            }
+        }
+
+        // Start quiz
+        function startQuiz(questionList) {
+            document.getElementById("welcomePanel").classList.add("hidden");
+            document.getElementById("contentArea").classList.add("hidden");
+            document.getElementById("quizArea").classList.remove("hidden");
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            questionAnswered = false;
+            currentQuizQuestions = questionList || questions;
+            renderQuestion();
+        }
+
+        // Random question
+        function showRandomQuestion() {
+            var randomQ = [questions[Math.floor(Math.random() * questions.length)]];
+            startQuiz(randomQ);
+        }
+
+        // Shuffle
+        function shuffleArray(array) {
+            var result = array.slice();
+            for (var i = result.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = result[i];
+                result[i] = result[j];
+                result[j] = temp;
+            }
+            return result;
+        }
+
+        // Render question
+        function renderQuestion() {
+            var q = currentQuizQuestions[currentQuestionIndex];
+            var container = document.getElementById("questionContainer");
+            
+            // Shuffle options
+            var optionsWithIndex = [];
+            for (var i = 0; i < q.options.length; i++) {
+                optionsWithIndex.push({ text: q.options[i], originalIndex: i });
+            }
+            var shuffled = shuffleArray(optionsWithIndex);
+            
+            var html = '<div class="fade-in">';
+            html += '<div class="flex items-center justify-between mb-4">';
+            html += '<span class="text-sm text-gray-500">题目 ' + (currentQuestionIndex + 1) + ' / ' + currentQuizQuestions.length + '</span>';
+            html += '<button onclick="toggleFavorite()" class="text-yellow-500 hover:text-yellow-600"><i class="fa-solid fa-star"></i></button>';
+            html += '</div>';
+            html += '<h3 class="text-lg font-medium text-gray-800 mb-4">' + q.question + '</h3>';
+            html += '<div class="space-y-2">';
+            for (var i = 0; i < shuffled.length; i++) {
+                html += '<label class="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer">';
+                html += '<input type="radio" name="answer" value="' + shuffled[i].originalIndex + '" class="mr-3" onclick="selectAnswer(' + shuffled[i].originalIndex + ')">';
+                html += '<span class="text-gray-700">' + shuffled[i].text + '</span>';
+                html += '</label>';
+            }
+            html += '</div>';
+            html += '<div id="resultArea" class="mt-4"></div>';
+            html += '</div>';
+            
+            container.innerHTML = html;
+            document.getElementById("quizScore").textContent = "得分: " + score;
+            updateButtons();
+        }
+
+        // Select answer
+        function selectAnswer(answerIndex) {
+            if (questionAnswered) return;
+            
+            questionAnswered = true;
+            var q = currentQuizQuestions[currentQuestionIndex];
+            var isCorrect = answerIndex === q.answer;
+            var resultArea = document.getElementById("resultArea");
+            
+            // Mark complete
+            markChapterComplete(q.chapter, currentQuestionIndex);
+            
+            // Highlight
+            var inputs = document.querySelectorAll('input[name="answer"]');
+            for (var i = 0; i < inputs.length; i++) {
+                inputs[i].disabled = true;
+                var label = inputs[i].parentElement;
+                if (parseInt(inputs[i].value) === q.answer) {
+                    label.classList.add("border-green-500", "bg-green-50");
+                } else if (parseInt(inputs[i].value) === answerIndex && !isCorrect) {
+                    label.classList.add("border-red-500", "bg-red-50");
+                }
+            }
+            
+            if (isCorrect) {
+                score++;
+                resultArea.innerHTML = '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded"><i class="fa-solid fa-check-circle mr-2"></i>回答正确！</div>';
+            } else {
+                resultArea.innerHTML = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"><i class="fa-solid fa-times-circle mr-2"></i>回答错误，正确答案是：' + q.options[q.answer] + '</div>';
+                wrongAnswers.push({ question: q.question, answer: q.options[q.answer], yourAnswer: q.options[answerIndex] });
+                updateWrongNotes();
+            }
+            
+            document.getElementById("quizScore").textContent = "得分: " + score;
+        }
+
+        // Prev question
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                questionAnswered = false;
+                renderQuestion();
+            }
+        }
+
+        // Next question
+        function nextQuestion() {
+            if (!questionAnswered) {
+                alert("请先回答当前题目");
+                return;
+            }
+            
+            if (currentQuestionIndex < currentQuizQuestions.length - 1) {
+                currentQuestionIndex++;
+                questionAnswered = false;
+                renderQuestion();
+            } else {
+                alert("测验结束！最终得分：" + score + "/" + currentQuizQuestions.length);
+                document.getElementById("welcomePanel").classList.remove("hidden");
+                document.getElementById("quizArea").classList.add("hidden");
+            }
+        }
+
+        // Update buttons
+        function updateButtons() {
+            document.getElementById("prevBtn").disabled = currentQuestionIndex === 0;
+            var nextBtn = document.getElementById("nextBtn");
+            if (currentQuestionIndex === currentQuizQuestions.length - 1) {
+                nextBtn.innerHTML = '完成<i class="fa-solid fa-check ml-1"></i>';
+            } else {
+                nextBtn.innerHTML = '下一题<i class="fa-solid fa-arrow-right ml-1"></i>';
+            }
+        }
+
+        // Toggle favorite
+        function toggleFavorite() {
+            var q = currentQuizQuestions[currentQuestionIndex];
+            var exists = false;
+            for (var i = 0; i < favoriteQuestions.length; i++) {
+                if (favoriteQuestions[i].question === q.question) {
+                    exists = true;
+                    favoriteQuestions.splice(i, 1);
+                    break;
+                }
+            }
+            if (!exists) {
+                favoriteQuestions.push(q);
+            }
+            updateFavorites();
+        }
+
+        // Update wrong notes
+        function updateWrongNotes() {
+            var container = document.getElementById("wrongNotes");
+            if (wrongAnswers.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">暂无错题</p>';
+                return;
+            }
+            var html = "";
+            for (var i = 0; i < wrongAnswers.length; i++) {
+                html += '<div class="bg-red-50 p-2 rounded text-xs">';
+                html += '<p class="font-medium text-gray-700">' + (i + 1) + '. ' + wrongAnswers[i].question + '</p>';
+                html += '<p class="text-red-600">你的答案：' + wrongAnswers[i].yourAnswer + '</p>';
+                html += '<p class="text-green-600">正确答案：' + wrongAnswers[i].answer + '</p>';
+                html += '</div>';
+            }
+            container.innerHTML = html;
+        }
+
+        // Update favorites
+        function updateFavorites() {
+            var container = document.getElementById("favorites");
+            if (favoriteQuestions.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">暂无收藏</p>';
+                return;
+            }
+            var html = "";
+            for (var i = 0; i < favoriteQuestions.length; i++) {
+                html += '<div class="bg-yellow-50 p-2 rounded text-xs cursor-pointer hover:bg-yellow-100" onclick="loadFavorite(' + i + ')">';
+                html += '<p class="font-medium text-gray-700">' + (i + 1) + '. ' + favoriteQuestions[i].question + '</p>';
+                html += '</div>';
+            }
+            container.innerHTML = html;
+        }
+
+        // Load favorite
+        function loadFavorite(index) {
+            startQuiz([favoriteQuestions[index]]);
+        }
+
+        // Save progress
+        function saveProgress() {
+            localStorage.setItem("geo_learned", JSON.stringify(learnedSections));
+            localStorage.setItem("geo_wrong", JSON.stringify(wrongAnswers));
+            localStorage.setItem("geo_favorite", JSON.stringify(favoriteQuestions));
+            localStorage.setItem("geo_chapter_progress", JSON.stringify(chapterProgress));
+        }
+
+        // Load progress
+        function loadProgress() {
+            var saved = localStorage.getItem("geo_learned");
+            if (saved) {
+                learnedSections = JSON.parse(saved);
+                for (var key in learnedSections) {
+                    if (learnedSections[key]) {
+                        var check = document.getElementById("check-" + key);
+                        if (check) check.classList.remove("hidden");
+                    }
+                }
+            }
+            
+            var savedWrong = localStorage.getItem("geo_wrong");
+            if (savedWrong) {
+                wrongAnswers = JSON.parse(savedWrong);
+                updateWrongNotes();
+            }
+            
+            var savedFav = localStorage.getItem("geo_favorite");
+            if (savedFav) {
+                favoriteQuestions = JSON.parse(savedFav);
+                updateFavorites();
+            }
+            
+            var savedChapter = localStorage.getItem("geo_chapter_progress");
+            if (savedChapter) {
+                chapterProgress = JSON.parse(savedChapter);
+            }
+            
+            updateProgress();
+        }
+
+        // Update progress
+        function updateProgress() {
+            var total = 0;
+            for (var i = 0; i < chapters.length; i++) {
+                total += chapters[i].sections.length;
+            }
+            var learnedCount = 0;
+            for (var key in learnedSections) {
+                if (learnedSections[key]) learnedCount++;
+            }
+            var percent = Math.round((learnedCount / total) * 100);
+            document.getElementById("progressBar").style.width = percent + "%";
+            document.getElementById("progressText").textContent = "学习进度: " + percent + "%";
+        }
+
+        // Reset progress
+        function resetProgress() {
+            if (confirm("确定要重置所有学习进度吗？")) {
+                learnedSections = {};
+                wrongAnswers = [];
+                favoriteQuestions = [];
+                chapterProgress = {};
+                localStorage.removeItem("geo_learned");
+                localStorage.removeItem("geo_wrong");
+                localStorage.removeItem("geo_favorite");
+                localStorage.removeItem("geo_chapter_progress");
+                var checks = document.querySelectorAll('[id^="check-"]');
+                for (var i = 0; i < checks.length; i++) {
+                    checks[i].classList.add("hidden");
+                }
+                updateProgress();
+                updateWrongNotes();
+                updateFavorites();
+                alert("进度已重置！");
+            }
+        }
+    </script>
+    </div>
+</body>
+    
+    <!-- 登录注册模态框 -->
+    <div id="authModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-96 max-w-[90%]">
+            <h2 id="modalTitle" class="text-xl font-bold mb-4">登录</h2>
+            <input id="authEmail" type="email" placeholder="邮箱" class="w-full px-4 py-2 border rounded-lg mb-3">
+            <input id="authPassword" type="password" placeholder="密码" class="w-full px-4 py-2 border rounded-lg mb-4">
+            <button id="authBtn" onclick="submitAuth()" class="w-full bg-blue-600 text-white py-2 rounded-lg">登录</button>
+            <p class="text-center mt-3 text-sm text-gray-500">
+                <span id="authSwitch" onclick="toggleAuthMode()" class="cursor-pointer text-blue-500">没有账号？点此注册</span>
+            </p>
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-500 text-xl">×</button>
+        </div>
+    </div>
+
+    <script>
+        // Supabase配置
         const SUPABASE_URL = 'https://adcdrzzyhveuhxchqbcs.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkY2Ryenp5aHZldWh4Y2hxYmNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MzgxNzIsImV4cCI6MjA4ODIxNDE3Mn0.UJEHfNqZaM5qrsRoJfr4bRKFOTEQPCyWwk1RaSM4hAw';
-        window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        let currentRole = 'student';
-        let isLoginMode = true;
-
-        window.setRole = function(role) {
-            currentRole = role;
-            document.getElementById('tabStudent').className = role === 'student' ? 'flex-1 py-2 rounded-lg bg-white shadow text-blue-600 font-bold' : 'flex-1 py-2 rounded-lg text-gray-500';
-            document.getElementById('tabTeacher').className = role === 'teacher' ? 'flex-1 py-2 rounded-lg bg-white shadow text-blue-600 font-bold' : 'flex-1 py-2 rounded-lg text-gray-500';
-            hideMsg();
+        
+        let authMode = 'login';
+        
+        function showLoginModal() { 
+            authMode = 'login'; 
+            document.getElementById('modalTitle').innerText = '登录'; 
+            document.getElementById('authBtn').innerText = '登录'; 
+            document.getElementById('authSwitch').innerText = '没有账号？点此注册'; 
+            document.getElementById('authModal').classList.remove('hidden'); 
+            document.getElementById('authModal').classList.add('flex'); 
         }
-
-        window.toggleMode = function() {
-            isLoginMode = !isLoginMode;
-            document.getElementById('btnMain').innerText = isLoginMode ? '立即登录' : '创建账号';
-            document.getElementById('btnSub').innerText = isLoginMode ? '没有账号？立即注册' : '已有账号？点此登录';
-            hideMsg();
+        
+        function showRegisterModal() { 
+            authMode = 'register'; 
+            document.getElementById('modalTitle').innerText = '注册'; 
+            document.getElementById('authBtn').innerText = '注册'; 
+            document.getElementById('authSwitch').innerText = '已有账号？点此登录'; 
+            document.getElementById('authModal').classList.remove('hidden'); 
+            document.getElementById('authModal').classList.add('flex'); 
         }
-
-        function showMsg(text, type) {
-            const msgBox = document.getElementById('msg');
-            msgBox.innerText = text;
-            msgBox.className = 'mt-4 text-center text-sm p-3 rounded-lg block';
-            if (type === 'error') msgBox.classList.add('bg-red-100', 'text-red-700');
-            if (type === 'success') msgBox.classList.add('bg-green-100', 'text-green-700');
-            if (type === 'info') msgBox.classList.add('bg-blue-100', 'text-blue-700');
+        
+        function closeAuthModal() { 
+            document.getElementById('authModal').classList.add('hidden'); 
+            document.getElementById('authModal').classList.remove('flex'); 
         }
-
-        function hideMsg() {
-            document.getElementById('msg').className = 'mt-4 text-center text-sm hidden p-3 rounded-lg';
+        
+        function toggleAuthMode() { 
+            if(authMode === 'login') showRegisterModal(); else showLoginModal(); 
         }
-
-        window.handleAuth = async function() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-
-            if(!username || !password) {
-                showMsg('请填写用户名和密码', 'error');
-                return;
-            }
-
-            if(password.length < 6) {
-                showMsg('密码至少需要6位', 'error');
-                return;
-            }
-
-            showMsg(isLoginMode ? '登录中...' : '注册中...', 'info');
-
+        
+        async function submitAuth() {
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            if(!email || !password) { alert('请填写邮箱和密码'); return; }
+            
+            const btn = document.getElementById('authBtn');
+            btn.disabled = true; btn.innerText = '请稍候...';
+            
             try {
-                if(isLoginMode) {
-                    // 登录：使用username作为email前缀
-                    const email = username + '@dili.local';
-                    const { data, error } = await window.supabase.auth.signInWithPassword({
-                        email: email,
-                        password: password
+                if(authMode === 'register') {
+                    const resp = await fetch(SUPABASE_URL + '/rest/v1/users', {
+                        method: 'POST',
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                        body: JSON.stringify({ email, password })
                     });
-
-                    if(error) throw error;
-
-                    // 登录成功
-                    localStorage.setItem('geo_current_user', JSON.stringify({
-                        username: username,
-                        role: currentRole
-                    }));
-                    
-                    showMsg('登录成功！正在跳转...', 'success');
-                    setTimeout(() => {
-                        window.location.href = currentRole === 'teacher' ? 'admin.html' : 'main.html';
-                    }, 1000);
-
+                    if(resp.ok) { alert('注册成功！请登录'); showLoginModal(); }
+                    else { const err = await resp.json(); alert('注册失败: ' + JSON.stringify(err)); }
                 } else {
-                    // 注册：创建用户
-                    const email = username + '@dili.local';
-                    const { data, error } = await window.supabase.auth.signUp({
-                        email: email,
-                        password: password,
-                        options: {
-                            data: {
-                                username: username,
-                                role: currentRole
-                            }
-                        }
+                    const resp = await fetch(SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email), {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
                     });
-
-                    if(error) throw error;
-
-                    showMsg('注册成功！请登录', 'success');
-                    setTimeout(() => {
-                        isLoginMode = true;
-                        document.getElementById('btnMain').innerText = '立即登录';
-                        document.getElementById('btnSub').innerText = '没有账号？立即注册';
-                        document.getElementById('username').value = '';
-                        document.getElementById('password').value = '';
-                        hideMsg();
-                    }, 1500);
+                    const users = await resp.json();
+                    if(users.length > 0 && users[0].password === password) {
+                        localStorage.setItem('geo_user', JSON.stringify(users[0]));
+                        closeAuthModal();
+                        showUserInfo(users[0]);
+                        alert('登录成功！');
+                    } else {
+                        alert('邮箱或密码错误');
+                    }
                 }
-            } catch (err) {
-                showMsg(err.message, 'error');
+            } catch(e) { alert('操作失败: ' + e.message); }
+            btn.disabled = false; btn.innerText = authMode === 'login' ? '登录' : '注册';
+        }
+        
+        function showUserInfo(user) {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('userInfo').classList.remove('hidden');
+            document.getElementById('userEmail').innerText = user.email;
+        }
+        
+        function logout() {
+            localStorage.removeItem('geo_user');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('userInfo').classList.add('hidden');
+        }
+        
+        // 检查登录状态 - 必须登录后才能看到网站
+        window.onload = function() {
+            const user = localStorage.getItem('geo_user');
+            if(user) {
+                document.getElementById('loginOverlay').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+                showUserInfo(JSON.parse(user));
+            } else {
+                document.getElementById('loginOverlay').classList.remove('hidden');
+                document.getElementById('mainContent').classList.add('hidden');
             }
         }
-
-        // 检查是否已登录
-        window.supabase.auth.getSession().then(({ data }) => {
-            if(data.session) {
-                window.location.href = 'main.html';
-            }
-        });
+        
+        function showLoginForm() {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+        }
+        
+        function showRegisterForm() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
+        
+        async function doLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            if(!email || !password) { alert('请填写邮箱和密码'); return; }
+            
+            try {
+                const resp = await fetch(SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email), {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+                });
+                const users = await resp.json();
+                if(users.length > 0 && users[0].password === password) {
+                    localStorage.setItem('geo_user', JSON.stringify(users[0]));
+                    document.getElementById('loginOverlay').classList.add('hidden');
+                    document.getElementById('mainContent').classList.remove('hidden');
+                    showUserInfo(users[0]);
+                } else {
+                    alert('邮箱或密码错误');
+                }
+            } catch(e) { alert('登录失败: ' + e.message); }
+        }
+        
+        async function doRegister() {
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            if(!email || !password) { alert('请填写邮箱和密码'); return; }
+            
+            try {
+                const resp = await fetch(SUPABASE_URL + '/rest/v1/users', {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                    body: JSON.stringify({ email, password })
+                });
+                if(resp.ok) { alert('注册成功！请登录'); showLoginForm(); }
+                else { const err = await resp.json(); alert('注册失败: ' + JSON.stringify(err)); }
+            } catch(e) { alert('注册失败: ' + e.message); }
+        }
     </script>
-</body>
 </html>
