@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>初中地理学习平台 - 登录</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -29,22 +28,19 @@
         .subtitle { color: #6b7280; font-size: 14px; text-align: center; margin-bottom: 25px; }
         input {
             width: 100%; padding: 14px; border: 1px solid #d1d5db; border-radius: 10px;
-            font-size: 14px; margin-bottom: 12px; outline: none; transition: all 0.3s;
+            font-size: 14px; margin-bottom: 12px; outline: none;
         }
         input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
         button {
             width: 100%; padding: 14px; border: none; border-radius: 10px;
-            font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 10px; transition: all 0.2s;
+            font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 10px;
         }
         .btn-login { background: #3b82f6; color: white; }
-        .btn-login:hover { background: #2563eb; }
         .btn-register { background: #10b981; color: white; }
-        .btn-register:hover { background: #059669; }
-        .btn-ghost { background: transparent; color: #6b7280; font-weight: normal; }
-        .btn-ghost:hover { color: #3b82f6; }
-        .msg { text-align: center; font-size: 13px; margin-top: 10px; padding: 8px; border-radius: 6px; display: none; }
-        .msg-error { background: #fee2e2; color: #dc2626; display: block; }
-        .msg-success { background: #d1fae5; color: #059669; display: block; }
+        .btn-ghost { background: transparent; color: #6b7280; }
+        .msg { text-align: center; font-size: 13px; margin-top: 10px; padding: 8px; border-radius: 6px; }
+        .msg-error { background: #fee2e2; color: #dc2626; }
+        .msg-success { background: #d1fae5; color: #059669; }
     </style>
 </head>
 <body>
@@ -56,106 +52,95 @@
         <div id="loginForm">
             <input id="loginEmail" type="email" placeholder="请输入邮箱">
             <input id="loginPassword" type="password" placeholder="请输入密码">
-            <button class="btn-login" id="loginBtn">登 录</button>
-            <button class="btn-ghost" id="showRegisterBtn">没有账号？点此注册</button>
+            <button class="btn-login" onclick="doLogin()">登 录</button>
+            <button class="btn-ghost" onclick="showRegister()">没有账号？点此注册</button>
         </div>
 
         <div id="registerForm" style="display:none;">
             <input id="regEmail" type="email" placeholder="请输入邮箱">
             <input id="regPassword" type="password" placeholder="至少6位密码">
-            <button class="btn-register" id="registerBtn">注 册</button>
-            <button class="btn-ghost" id="showLoginBtn">已有账号？点此登录</button>
+            <button class="btn-register" onclick="doRegister()">注 册</button>
+            <button class="btn-ghost" onclick="showLogin()">已有账号？点此登录</button>
         </div>
 
         <div id="msg" class="msg"></div>
     </div>
 
     <script>
-        // 1. 初始化 Supabase
-        const SUPABASE_URL = 'https://adcdrzzyhveuhxchqbcs.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_KFqWdKhpA-IJCRG3h6crvA_tEQtC4wI';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // 消息提示函数
         function showMsg(text, type) {
-            const msg = document.getElementById('msg');
+            var msg = document.getElementById('msg');
             msg.innerText = text;
             msg.className = 'msg';
             if (type === 'error') msg.classList.add('msg-error');
             if (type === 'success') msg.classList.add('msg-success');
         }
 
-        // 2. 注册逻辑 (使用官方 Auth 接口)
-        document.getElementById('registerBtn').onclick = async function() {
-            const email = document.getElementById('regEmail').value;
-            const password = document.getElementById('regPassword').value;
+        function showRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('msg').innerText = '';
+        }
+
+        function showLogin() {
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('msg').innerText = '';
+        }
+
+        function doRegister() {
+            var email = document.getElementById('regEmail').value;
+            var password = document.getElementById('regPassword').value;
 
             if(!email || !password) return showMsg('请填写邮箱和密码', 'error');
             if(password.length < 6) return showMsg('密码至少需要6位', 'error');
 
-            showMsg('注册中...', '');
-
-            const { data, error } = await supabase.auth.signUp({
-                email: email,
-                password: password,
-            });
-
-            if (error) {
-                showMsg('注册失败: ' + error.message, 'error');
-            } else {
-                showMsg('注册成功！请登录', 'success');
-                setTimeout(() => document.getElementById('showLoginBtn').click(), 1500);
+            // 保存到本地存储（演示用）
+            var users = JSON.parse(localStorage.getItem('geo_users') || '[]');
+            
+            // 检查是否已存在
+            for(var i=0; i<users.length; i++) {
+                if(users[i].email === email) {
+                    return showMsg('该邮箱已注册', 'error');
+                }
             }
-        };
 
-        // 3. 登录逻辑 (使用官方 Auth 接口)
-        document.getElementById('loginBtn').onclick = async function() {
-            alert('点击了登录按钮');
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            alert('邮箱: ' + email);
+            users.push({email: email, password: password});
+            localStorage.setItem('geo_users', JSON.stringify(users));
+            
+            showMsg('注册成功！请登录', 'success');
+            setTimeout(showLogin, 1500);
+        }
+
+        function doLogin() {
+            var email = document.getElementById('loginEmail').value;
+            var password = document.getElementById('loginPassword').value;
 
             if(!email || !password) return showMsg('请填写邮箱和密码', 'error');
 
-            showMsg('登录中...', '');
-
-            try {
-                alert('开始请求Supabase');
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password,
-                });
-                alert('返回结果: ' + JSON.stringify({error: error?.message}));
-
-                if (error) {
-                    showMsg('邮箱或密码错误', 'error');
-                } else {
-                    showMsg('登录成功！即将跳转...', 'success');
-                    setTimeout(() => { window.location.href = 'main.html'; }, 1000);
+            // 从本地存储验证
+            var users = JSON.parse(localStorage.getItem('geo_users') || '[]');
+            var found = false;
+            
+            for(var i=0; i<users.length; i++) {
+                if(users[i].email === email && users[i].password === password) {
+                    found = true;
+                    break;
                 }
-            } catch(e) {
-                alert('异常: ' + e.message);
             }
-        };
 
-        // UI 切换逻辑
-        document.getElementById('showRegisterBtn').onclick = () => {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('registerForm').style.display = 'block';
-            document.getElementById('msg').style.display = 'none';
-        };
+            if(found) {
+                localStorage.setItem('geo_current_user', email);
+                showMsg('登录成功！即将跳转...', 'success');
+                setTimeout(function() { window.location.href = 'main.html'; }, 1000);
+            } else {
+                showMsg('邮箱或密码错误', 'error');
+            }
+        }
 
-        document.getElementById('showLoginBtn').onclick = () => {
-            document.getElementById('registerForm').style.display = 'none';
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('msg').style.display = 'none';
-        };
-
-        // 检查是否已经登录过，如果登录过直接跳主页
-        window.onload = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) window.location.href = 'main.html';
-        };
+        // 检查是否已登录
+        if(localStorage.getItem('geo_current_user')) {
+            window.location.href = 'main.html';
+        }
     </script>
 </body>
 </html>
