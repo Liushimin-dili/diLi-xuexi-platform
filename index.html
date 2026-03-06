@@ -136,8 +136,8 @@
                     localStorage.setItem('geo_user', JSON.stringify(users[0]));
                     showMsg('登录成功！即将进入...', 'success');
                     setTimeout(function() { 
-                        alert('登录成功！\n\n账号：' + email); 
-                    }, 500);
+                        window.location.href = 'index.html'; 
+                    }, 1000);
                 } else {
                     showMsg('邮箱或密码错误', 'error');
                 }
