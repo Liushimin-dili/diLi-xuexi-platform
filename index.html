@@ -44,12 +44,9 @@
     </div>
 
     <script>
-        alert('页面加载成功！Supabase SDK: ' + typeof supabase);
-        
         const SUPABASE_URL = 'https://adcdrzzyhveuhxchqbcs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_KFqWdKhpA-IJCRG3h6crvA_tEQtC4wI';
         window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        alert('Supabase客户端创建完成');
 
         let currentRole = 'student';
         let isLoginMode = true;
@@ -67,28 +64,29 @@
         }
 
         window.handleAuth = async function(type) {
-            alert('handleAuth被调用了！');
-            
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const msgBox = document.getElementById('msg');
 
-            if(!email || !password) return alert('请填写完整信息');
+            if(!email || !password) {
+                msgBox.className = "mt-4 text-center text-sm p-3 rounded-lg bg-red-100 text-red-700 block";
+                msgBox.innerText = '请填写完整信息';
+                return;
+            }
 
-            alert('开始登录: ' + email);
+            msgBox.className = "mt-4 text-center text-sm p-3 rounded-lg bg-blue-100 text-blue-700 block";
+            msgBox.innerText = isLoginMode ? '登录中...' : '注册中...';
 
             try {
                 let result;
                 if(isLoginMode) {
-                    result = await supabase.auth.signInWithPassword({ email, password });
+                    result = await window.supabase.auth.signInWithPassword({ email, password });
                 } else {
-                    result = await supabase.auth.signUp({ 
+                    result = await window.supabase.auth.signUp({ 
                         email, password, 
                         options: { data: { role: currentRole } } 
                     });
                 }
-
-                alert('结果: ' + JSON.stringify({error: result.error?.message}));
 
                 if(result.error) throw result.error;
 
@@ -96,20 +94,17 @@
                 msgBox.innerText = isLoginMode ? "登录成功，正在跳转..." : "注册成功！请登录";
                 
                 if(isLoginMode) {
-                    const { data: { user } } = await supabase.auth.getUser();
+                    const { data: { user } } = await window.supabase.auth.getUser();
                     const role = user.user_metadata.role;
                     setTimeout(() => {
                         window.location.href = role === 'teacher' ? 'admin.html' : 'main.html';
                     }, 1000);
                 }
             } catch (err) {
-                alert('错误: ' + err.message);
                 msgBox.className = "mt-4 text-center text-sm p-3 rounded-lg bg-red-100 text-red-700 block";
                 msgBox.innerText = err.message;
             }
         }
-        
-        alert('JavaScript初始化完成');
     </script>
 </body>
 </html>
